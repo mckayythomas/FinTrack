@@ -1,4 +1,7 @@
+import clientPromise from "@/infrastructure/db/mongodb-connection";
+import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import NextAuth from "next-auth";
+import { Adapter } from "next-auth/adapters";
 // import AppleProvider from "next-auth/providers/apple";
 // import FacebookProvider from "next-auth/providers/facebook";
 import GoogleProvider from "next-auth/providers/google";
@@ -25,6 +28,7 @@ export const authOptions = {
     //   from: "NextAuth.js <no-reply@example.com>",
     // }),
   ],
+  adapter: MongoDBAdapter(clientPromise) as Adapter,
 };
 
 export const handler = NextAuth(authOptions);
