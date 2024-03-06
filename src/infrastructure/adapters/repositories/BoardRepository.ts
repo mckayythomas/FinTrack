@@ -1,7 +1,8 @@
-import { BoardModel } from "../../db/models/board.model";
+import { BoardModel } from "../../db/mongooseModels/board.model";
 import { IBoardEntity } from "../../../domain/entities/BoardEntity";
-import { IBoardRepository } from "../BoardRepository";
-import { mapBoardModelToEntity } from "../board.mapper";
+import { IBoardRepository } from "../IBoardRepository";
+import { mapBoardModelToEntity } from "../boardMapper";
+import dbConnect from "@/infrastructure/db/mongoose-connection";
 import mongoose from "mongoose";
 
 export class BoardRepositoryError extends Error {
@@ -10,9 +11,10 @@ export class BoardRepositoryError extends Error {
   }
 }
 
-export class MongooseBoardRepository implements IBoardRepository {
+export class BoardRepository implements IBoardRepository {
   async findAllByUserId(userId: string): Promise<IBoardEntity[]> {
     try {
+      await dbConnect();
       const boards = await BoardModel.find({ userId: userId });
 
       // Check for empty results
@@ -40,13 +42,14 @@ export class MongooseBoardRepository implements IBoardRepository {
     }
   }
 
-  async findOneById(id: string): Promise<IBoardEntity> {
+  async findOneById(boardId: string): Promise<IBoardEntity> {
     try {
-      const board = await BoardModel.findById(id);
+      await dbConnect();
+      const board = await BoardModel.findById(boardId);
 
       // Handle board not found
       if (!board) {
-        throw new BoardRepositoryError(`Board with ID ${id} not found`);
+        throw new BoardRepositoryError(`Board with ID ${boardId} not found`);
       }
 
       // Map to entity from document
@@ -59,7 +62,7 @@ export class MongooseBoardRepository implements IBoardRepository {
         );
       } else {
         throw new BoardRepositoryError(
-          `Error finding board for id: ${id} \n${error.message}`
+          `Error finding board for id: ${boardId} \n${error.message}`
         );
       }
     }
@@ -67,12 +70,15 @@ export class MongooseBoardRepository implements IBoardRepository {
 
   async create(board: IBoardEntity): Promise<IBoardEntity> {
     try {
+      await dbConnect();
+      const newObjectId = new mongoose.Types.ObjectId();
+      board._id = newObjectId.toString();
       const boardModel = new BoardModel(board);
       const newBoard = await boardModel.save();
 
       // Handle board not created
       if (!newBoard) {
-        throw Error;
+        throw new BoardRepositoryError(`Error creating board: ${board}`);
       }
 
       // Map to entity from document
@@ -91,19 +97,19 @@ export class MongooseBoardRepository implements IBoardRepository {
     }
   }
 
-  async update(board: IBoardEntity): Promise<IBoardEntity> {
+  async update(
+    boardId: string,
+    board: Partial<IBoardEntity>
+  ): Promise<IBoardEntity> {
     try {
-      const updatedBoard = await BoardModel.findByIdAndUpdate(
-        board._id,
-        board,
-        {
-          new: true,
-        }
-      );
+      await dbConnect();
+      const updatedBoard = await BoardModel.findByIdAndUpdate(boardId, board, {
+        new: true,
+      });
       // Handle update error
       if (!updatedBoard) {
         throw new BoardRepositoryError(
-          `Board with ID ${board._id} not found or update failed`
+          `Board with ID ${boardId} not found or update failed`
         );
       }
 
@@ -117,7 +123,7 @@ export class MongooseBoardRepository implements IBoardRepository {
         );
       } else {
         throw new BoardRepositoryError(
-          `Error updating board with id: ${board._id} to: ${board} \n${error.message}`
+          `Error updating board with id: ${boardId} to: ${board} \n${error.message}`
         );
       }
     }
@@ -125,15 +131,18 @@ export class MongooseBoardRepository implements IBoardRepository {
 
   async delete(id: string): Promise<void> {
     try {
-      await BoardModel.findByIdAndDelete(id);
-      return;
+      await dbConnect();
+      const deletedBoard = await BoardModel.findByIdAndDelete(id);
+      if (!deletedBoard) {
+        throw new BoardRepositoryError(`Board with id ${id} not found`);
+      }
     } catch (error: any) {
       if (error instanceof mongoose.Error) {
         if (error.name === "CastError") {
-          throw new BoardRepositoryError(`Invalid board ID: ${id}`);
+          throw new BoardRepositoryError(`Invalid board Id: ${id}`);
         } else {
           throw new BoardRepositoryError(
-            `Mongoose error deleting board: ${error.message}`
+            `Mongoose error deleting board with id:${id} \n${error.message}`
           );
         }
       } else {

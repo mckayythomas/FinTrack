@@ -8,6 +8,6 @@ export interface IBoardEntity {
     userId: string;
     accessLevel: "view-only" | "contributor";
   }[];
-  createdAt: number;
-  updatedAt: number;
+  createdAt?: number;
+  updatedAt?: number;
 }
