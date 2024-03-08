@@ -1,6 +1,6 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
 
-export interface IBoardDocument {
+export interface IBoardDocument extends Document {
   _id?: mongoose.Types.ObjectId | string;
   userId: mongoose.Types.ObjectId | string;
   name: String;

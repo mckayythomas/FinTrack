@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { BoardRepository } from "@/infrastructure/adapters/repositories/BoardRepository";
-import { createBoardSchema } from "@/domain/entities/board.schema";
+import { createBoardSchema } from "@/app/api/_validation/board.schema";
 import { createBoard } from "@/domain/useCases/boards/creation/createBoard";
 import { getBoardsByUser } from "@/domain/useCases/boards/data/GetAllUserBoards";
 

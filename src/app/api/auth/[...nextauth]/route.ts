@@ -1,4 +1,4 @@
-import clientPromise from "@/infrastructure/db/mongodb-connection";
+import clientPromise from "@/infrastructure/db/mongodb.connection";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import NextAuth from "next-auth";
 import { Adapter } from "next-auth/adapters";

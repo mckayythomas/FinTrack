@@ -1,4 +1,4 @@
-import { IBoardEntity } from "@/domain/entities/BoardEntity";
+import { IBoardEntity } from "@/domain/entities/IBoardEntity";
 
 export interface IBoardRepository {
   findAllByUserId(userId: string): Promise<IBoardEntity[]>;

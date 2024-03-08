@@ -1,8 +1,8 @@
 import { BoardModel } from "../../db/mongooseModels/board.model";
-import { IBoardEntity } from "../../../domain/entities/BoardEntity";
-import { IBoardRepository } from "../IBoardRepository";
-import { mapBoardModelToEntity } from "../boardMapper";
-import dbConnect from "@/infrastructure/db/mongoose-connection";
+import { IBoardEntity } from "../../../domain/entities/IBoardEntity";
+import { IBoardRepository } from "../interfaces/IBoardRepository";
+import { mapBoardDocumentToEntity } from "../boardMapper";
+import dbConnect from "@/infrastructure/db/mongoose.connection";
 import mongoose from "mongoose";
 
 export class BoardRepositoryError extends Error {
@@ -23,7 +23,7 @@ export class BoardRepository implements IBoardRepository {
       }
 
       // Map to entity from document
-      const boardsAsEntity = boards.map(mapBoardModelToEntity);
+      const boardsAsEntity = boards.map(mapBoardDocumentToEntity);
       return boardsAsEntity;
     } catch (error: any) {
       if (error instanceof mongoose.Error) {
@@ -53,7 +53,7 @@ export class BoardRepository implements IBoardRepository {
       }
 
       // Map to entity from document
-      const boardAsEntity = mapBoardModelToEntity(board);
+      const boardAsEntity = mapBoardDocumentToEntity(board);
       return boardAsEntity;
     } catch (error: any) {
       if (error instanceof mongoose.Error) {
@@ -82,7 +82,7 @@ export class BoardRepository implements IBoardRepository {
       }
 
       // Map to entity from document
-      const newBoardAsEntity = mapBoardModelToEntity(newBoard);
+      const newBoardAsEntity = mapBoardDocumentToEntity(newBoard);
       return newBoardAsEntity;
     } catch (error: any) {
       if (error instanceof mongoose.Error) {
@@ -114,7 +114,7 @@ export class BoardRepository implements IBoardRepository {
       }
 
       // Map to entity from board
-      const updatedBoardAsEntity = mapBoardModelToEntity(updatedBoard);
+      const updatedBoardAsEntity = mapBoardDocumentToEntity(updatedBoard);
       return updatedBoardAsEntity;
     } catch (error: any) {
       if (error instanceof mongoose.Error) {
@@ -164,7 +164,7 @@ export class BoardRepository implements IBoardRepository {
         );
       }
 
-      const sharedBoardsAsEntity = sharedBoards.map(mapBoardModelToEntity);
+      const sharedBoardsAsEntity = sharedBoards.map(mapBoardDocumentToEntity);
 
       return sharedBoardsAsEntity;
     } catch (error: any) {

@@ -3,7 +3,7 @@ import {
   BoardRepository,
   BoardRepositoryError,
 } from "@/infrastructure/adapters/repositories/BoardRepository";
-import { updateBoardSchema } from "@/domain/entities/board.schema";
+import { updateBoardSchema } from "@/app/api/_validation/board.schema";
 import { getBoardById } from "@/domain/useCases/boards/data/GetBoardById";
 import { updateBoard } from "@/domain/useCases/boards/management/UpdateBoard";
 import { deleteBoard } from "@/domain/useCases/boards/management/DeleteBoard";

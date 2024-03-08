@@ -1,7 +1,7 @@
 import { IBoardDocument } from "../db/interfaces/IBoardDocument";
-import { IBoardEntity } from "@/domain/entities/BoardEntity";
+import { IBoardEntity } from "@/domain/entities/IBoardEntity";
 
-export function mapBoardModelToEntity(
+export function mapBoardDocumentToEntity(
   boardModel: IBoardDocument
 ): IBoardEntity {
   // If shared users convert to string as needed by the entity

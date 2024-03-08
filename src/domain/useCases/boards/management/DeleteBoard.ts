@@ -1,5 +1,5 @@
 import { BoardRepositoryError } from "@/infrastructure/adapters/repositories/BoardRepository";
-import { IBoardRepository } from "@/infrastructure/adapters/IBoardRepository";
+import { IBoardRepository } from "@/infrastructure/adapters/interfaces/IBoardRepository";
 
 class DeleteBoardError extends Error {
   constructor(message: string) {

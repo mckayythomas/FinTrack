@@ -1,6 +1,6 @@
 import { BoardRepositoryError } from "@/infrastructure/adapters/repositories/BoardRepository";
-import { IBoardEntity } from "@/domain/entities/BoardEntity";
-import { IBoardRepository } from "@/infrastructure/adapters/IBoardRepository";
+import { IBoardEntity } from "@/domain/entities/IBoardEntity";
+import { IBoardRepository } from "@/infrastructure/adapters/interfaces/IBoardRepository";
 
 class GetBoardsByUserError extends Error {
   constructor(message: string) {
