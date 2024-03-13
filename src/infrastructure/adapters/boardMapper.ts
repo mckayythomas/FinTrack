@@ -2,11 +2,11 @@ import { IBoardDocument } from "../db/interfaces/IBoardDocument";
 import { IBoardEntity } from "@/domain/entities/IBoardEntity";
 
 export function mapBoardDocumentToEntity(
-  boardModel: IBoardDocument
+  boardDocument: IBoardDocument
 ): IBoardEntity {
   // If shared users convert to string as needed by the entity
-  const convertedSharedUsers = boardModel.sharedUsers
-    ? boardModel.sharedUsers.map((sharedUser) => ({
+  const convertedSharedUsers = boardDocument.sharedUsers
+    ? boardDocument.sharedUsers.map((sharedUser) => ({
         userId: sharedUser.userId.toString(),
         accessLevel: sharedUser.accessLevel,
       }))
@@ -14,13 +14,13 @@ export function mapBoardDocumentToEntity(
 
   // Return board as entity of board mapped from model
   return {
-    _id: boardModel._id?.toString(),
-    userId: boardModel.userId.toString(),
-    name: boardModel.name.toString(),
-    privacy: boardModel.privacy,
-    createdAt: boardModel.createdAt,
-    updatedAt: boardModel.updatedAt,
-    description: boardModel.description?.toString(),
+    _id: boardDocument._id?.toString(),
+    userId: boardDocument.userId.toString(),
+    name: boardDocument.name.toString(),
+    privacy: boardDocument.privacy,
+    createdAt: boardDocument.createdAt,
+    updatedAt: boardDocument.updatedAt,
+    description: boardDocument.description?.toString(),
     sharedUsers: convertedSharedUsers,
   };
 }

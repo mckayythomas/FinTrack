@@ -1,14 +1,14 @@
-import mongoose, { Schema } from "mongoose";
+import { Schema } from "mongoose";
 import { IMonthDocument } from "../interfaces/IMonthDocument";
 
 export const MonthSchema = new Schema<IMonthDocument>(
   {
     _id: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       description: "Unique identifier for the month",
     },
     yearId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       required: true,
       description: "Reference to the associated year",
     },

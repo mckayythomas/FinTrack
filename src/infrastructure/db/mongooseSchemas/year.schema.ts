@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import { Schema } from "mongoose";
 import { IYearDocument } from "../interfaces/IYearDocument";
 
 export const YearSchema = new Schema<IYearDocument>(

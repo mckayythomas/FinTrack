@@ -106,6 +106,7 @@ export class BoardRepository implements IBoardRepository {
       const updatedBoard = await BoardModel.findByIdAndUpdate(boardId, board, {
         new: true,
       });
+
       // Handle update error
       if (!updatedBoard) {
         throw new BoardRepositoryError(
@@ -129,25 +130,25 @@ export class BoardRepository implements IBoardRepository {
     }
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(boardId: string): Promise<void> {
     try {
       await dbConnect();
-      const deletedBoard = await BoardModel.findByIdAndDelete(id);
+      const deletedBoard = await BoardModel.findByIdAndDelete(boardId);
       if (!deletedBoard) {
-        throw new BoardRepositoryError(`Board with id ${id} not found`);
+        throw new BoardRepositoryError(`Board with id ${boardId} not found`);
       }
     } catch (error: any) {
       if (error instanceof mongoose.Error) {
         if (error.name === "CastError") {
-          throw new BoardRepositoryError(`Invalid board Id: ${id}`);
+          throw new BoardRepositoryError(`Invalid board Id: ${boardId}`);
         } else {
           throw new BoardRepositoryError(
-            `Mongoose error deleting board with id:${id} \n${error.message}`
+            `Mongoose error deleting board with id:${boardId} \n${error.message}`
           );
         }
       } else {
         throw new BoardRepositoryError(
-          `Unexpected error deleting board with id ${id}: \n${error.message}`
+          `Unexpected error deleting board with id ${boardId}: \n${error.message}`
         );
       }
     }
