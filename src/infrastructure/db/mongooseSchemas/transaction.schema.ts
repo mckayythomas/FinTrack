@@ -11,6 +11,7 @@ export const TransactionSchema = new Schema<ITransactionDocument>(
       type: Schema.Types.ObjectId,
       required: true,
       description: "Reference to the associated month.",
+      ref: "Month",
     },
     name: {
       type: String,

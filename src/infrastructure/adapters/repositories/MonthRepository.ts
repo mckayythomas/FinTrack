@@ -153,4 +153,59 @@ export class MonthRepository implements IMonthRepository {
       }
     }
   }
+
+  async aggregateTransactionsByYear(
+    yearId: string
+  ): Promise<{ totalIncome: number; totalExpenses: number }> {
+    try {
+      await dbConnect();
+      const aggregatedTransactions = await MonthModel.aggregate([
+        { $match: { yearId: yearId } },
+        { $group: { _id: "$type", totalAmount: { $sum: "$amount" } } },
+      ]);
+
+      //   Handle error during aggregating
+      if (!aggregatedTransactions) {
+        throw new MonthRepositoryError(
+          `Error aggregating transactions with yearId: ${yearId}`
+        );
+      } else if (aggregatedTransactions.length > 2) {
+        throw new MonthRepositoryError(
+          `Error aggregating transactions, data inconsistent: ${aggregatedTransactions}`
+        );
+      }
+
+      // Return in formatted form
+      const formattedAggregatedTransactions = {
+        totalExpenses: 0,
+        totalIncome: 0,
+      };
+
+      for (const transactionTotal of aggregatedTransactions) {
+        if (transactionTotal._id === "expense") {
+          formattedAggregatedTransactions.totalExpenses =
+            transactionTotal.totalAmount;
+        } else if (transactionTotal._id === "income") {
+          formattedAggregatedTransactions.totalIncome =
+            transactionTotal.totalAmount;
+        } else {
+          throw new MonthRepositoryError(
+            `Error formatting aggregated transactions, data inconsistency with transactionTotal: ${transactionTotal}`
+          );
+        }
+      }
+
+      return formattedAggregatedTransactions;
+    } catch (error: any) {
+      if (error instanceof mongoose.Error) {
+        throw new MonthRepositoryError(
+          `Mongoose error aggregating amounts for yearId: ${yearId} \n${error.message}`
+        );
+      } else {
+        throw new MonthRepositoryError(
+          `Unexpected error aggregating amounts for yearId: ${yearId} \n${error.message}`
+        );
+      }
+    }
+  }
 }

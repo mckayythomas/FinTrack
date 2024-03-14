@@ -6,4 +6,7 @@ export interface IMonthRepository {
   create(month: IMonthEntity): Promise<IMonthEntity>;
   update(monthId: string, month: Partial<IMonthEntity>): Promise<IMonthEntity>;
   delete(monthId: string): Promise<void>;
+  aggregateTransactionsByYear(
+    yearId: string
+  ): Promise<{ totalIncome: number; totalExpenses: number }>;
 }

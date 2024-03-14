@@ -11,6 +11,7 @@ export const YearSchema = new Schema<IYearDocument>(
       type: Schema.Types.ObjectId,
       required: true,
       description: "Reference to the associated board",
+      ref: "Board",
     },
     year: {
       type: Number,
@@ -19,7 +20,6 @@ export const YearSchema = new Schema<IYearDocument>(
     },
     totalIncome: {
       type: Number,
-      required: true,
       default: 0,
       min: 0,
       description:
@@ -27,7 +27,6 @@ export const YearSchema = new Schema<IYearDocument>(
     },
     totalExpenses: {
       type: Number,
-      required: true,
       default: 0,
       min: 0,
       description:

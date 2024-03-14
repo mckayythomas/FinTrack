@@ -4,6 +4,7 @@ import { ITransactionRepository } from "../interfaces/ITransactionRepository";
 import { mapTransactionDocumentToEntity } from "../transactionMapper";
 import dbConnect from "@/infrastructure/db/mongoose.connection";
 import mongoose from "mongoose";
+import { Transaction } from "mongodb";
 
 export class TransactionRepositoryError extends Error {
   constructor(message: string) {
@@ -167,6 +168,61 @@ export class TransactionRepository implements ITransactionRepository {
       } else {
         throw new TransactionRepositoryError(
           `Unexpected error deleting transaction with id ${transactionId}: \n${error.message}`
+        );
+      }
+    }
+  }
+
+  async aggregateTransactionsByMonth(
+    monthId: string
+  ): Promise<{ totalExpenses: number; totalIncome: number }> {
+    try {
+      await dbConnect();
+      const aggregatedTransactions = await TransactionModel.aggregate([
+        { $match: { monthId: monthId } },
+        { $group: { _id: "$type", totalAmount: { $sum: "$amount" } } },
+      ]);
+
+      //  Handle error during aggregating
+      if (!aggregatedTransactions) {
+        throw new TransactionRepositoryError(
+          `Error aggregating transactions with monthId: ${monthId}`
+        );
+      } else if (aggregatedTransactions.length > 2) {
+        throw new TransactionRepositoryError(
+          `Error aggregating transactions, data inconsistent: ${aggregatedTransactions}`
+        );
+      }
+
+      // Return in formatted form
+      const formattedAggregatedTransactions = {
+        totalExpenses: 0,
+        totalIncome: 0,
+      };
+
+      for (const transactionTotal of aggregatedTransactions) {
+        if (transactionTotal._id === "expense") {
+          formattedAggregatedTransactions.totalExpenses =
+            transactionTotal.totalAmount;
+        } else if (transactionTotal._id === "income") {
+          formattedAggregatedTransactions.totalIncome =
+            transactionTotal.totalAmount;
+        } else {
+          throw new TransactionRepositoryError(
+            `Error formatting aggregated transactions, data inconsistency with transactionTotal: ${transactionTotal}`
+          );
+        }
+      }
+
+      return formattedAggregatedTransactions;
+    } catch (error: any) {
+      if (error instanceof mongoose.Error) {
+        throw new TransactionRepositoryError(
+          `Mongoose error aggregating amounts for monthId: ${monthId} \n${error.message}`
+        );
+      } else {
+        throw new TransactionRepositoryError(
+          `Unexpected error aggregating amounts for monthId: ${monthId} \n${error.message}`
         );
       }
     }

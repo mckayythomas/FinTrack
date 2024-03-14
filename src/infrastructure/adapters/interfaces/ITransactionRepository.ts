@@ -9,4 +9,7 @@ export interface ITransactionRepository {
     transaction: Partial<ITransactionEntity>
   ): Promise<ITransactionEntity>;
   delete(transactionId: string): Promise<void>;
+  aggregateTransactionsByMonth(
+    monthId: string
+  ): Promise<{ totalExpenses: number; totalIncome: number }>;
 }

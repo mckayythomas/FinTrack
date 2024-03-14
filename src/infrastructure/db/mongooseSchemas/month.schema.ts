@@ -11,6 +11,7 @@ export const MonthSchema = new Schema<IMonthDocument>(
       type: Schema.Types.ObjectId,
       required: true,
       description: "Reference to the associated year",
+      ref: "Year",
     },
     month: {
       type: Number,
@@ -21,7 +22,6 @@ export const MonthSchema = new Schema<IMonthDocument>(
     },
     totalIncome: {
       type: Number,
-      required: true,
       default: 0,
       min: 0,
       description:
@@ -29,7 +29,6 @@ export const MonthSchema = new Schema<IMonthDocument>(
     },
     totalExpenses: {
       type: Number,
-      required: true,
       default: 0,
       min: 0,
       description:

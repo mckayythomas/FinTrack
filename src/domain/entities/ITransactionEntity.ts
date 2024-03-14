@@ -25,6 +25,6 @@ export interface ITransactionEntity {
     | "gifts"
     | "dividend";
   customCategory?: string;
-  createdAt: number;
-  updatedAt: number;
+  createdAt?: number;
+  updatedAt?: number;
 }

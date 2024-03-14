@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { BoardRepository } from "@/infrastructure/adapters/repositories/BoardRepository";
 import { createBoardSchema } from "@/app/api/_validation/board.schema";
-import { createBoard } from "@/domain/useCases/boards/creation/createBoard";
+import { createBoard } from "@/domain/useCases/boards/creation/CreateBoard";
 import { getBoardsByUser } from "@/domain/useCases/boards/data/GetAllUserBoards";
 
 const boardRepository = new BoardRepository();
