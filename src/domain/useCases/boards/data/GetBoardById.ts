@@ -24,7 +24,7 @@ export async function getBoardById(
     if (error instanceof BoardRepositoryError) {
       throw error;
     } else {
-      throw new GetBoardByIdError(`Error creating board: ${error.message}`);
+      throw new GetBoardByIdError(`Error finding board: ${error.message}`);
     }
   }
 }

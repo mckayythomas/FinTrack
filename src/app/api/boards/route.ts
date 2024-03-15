@@ -1,3 +1,5 @@
+// api/boards
+
 import { NextRequest, NextResponse } from "next/server";
 import { BoardRepository } from "@/infrastructure/adapters/repositories/BoardRepository";
 import { createBoardSchema } from "@/app/api/_validation/board.schema";

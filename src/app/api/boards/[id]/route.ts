@@ -1,3 +1,5 @@
+// api/boards/[id]
+
 import { NextRequest, NextResponse } from "next/server";
 import {
   BoardRepository,

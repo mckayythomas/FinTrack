@@ -20,7 +20,7 @@ class CreateTransactionError extends Error {
 }
 
 export async function createTransaction(
-  transaction: Partial<ITransactionEntity>,
+  transaction: ITransactionEntity,
   transactionRepository: ITransactionRepository,
   boardRepository: IBoardRepository,
   yearRepository: IYearRepository,
@@ -76,6 +76,9 @@ export async function createTransaction(
 
         const newMonth = await monthRepository.create(newMonthData);
         if (!newMonth) {
+          throw new CreateTransactionError(
+            `Error creating necessary months for transaction date: ${transactionDate}`
+          );
         }
         if (monthNumber === transactionMonth) {
           monthId = newMonth._id!;
