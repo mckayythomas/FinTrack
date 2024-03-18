@@ -1,5 +1,5 @@
-import { ITransactionDocument } from "../db/interfaces/ITransactionDocument";
 import { ITransactionEntity } from "@/domain/entities/ITransactionEntity";
+import { ITransactionDocument } from "../db/interfaces/ITransactionDocument";
 
 export function mapTransactionDocumentToEntity(
   transactionDocument: ITransactionDocument

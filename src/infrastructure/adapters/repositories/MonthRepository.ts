@@ -1,9 +1,9 @@
+import mongoose from "mongoose";
 import { MonthModel } from "@/infrastructure/db/mongooseModels/month.model";
 import { IMonthEntity } from "@/domain/entities/IMonthEntity";
+import dbConnect from "@/infrastructure/db/mongoose.connection";
 import { IMonthRepository } from "../interfaces/IMonthRepository";
 import { mapMonthDocumentToEntity } from "../monthMapper";
-import dbConnect from "@/infrastructure/db/mongoose.connection";
-import mongoose from "mongoose";
 
 export class MonthRepositoryError extends Error {
   constructor(message: string) {

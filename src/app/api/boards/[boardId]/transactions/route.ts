@@ -1,18 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-
 import { YearRepository } from "@/infrastructure/adapters/repositories/YearRepository";
 import { MonthRepository } from "@/infrastructure/adapters/repositories/MonthRepository";
 import { TransactionRepository } from "@/infrastructure/adapters/repositories/TransactionRepository";
-
 import { getYearsByBoard } from "@/domain/useCases/years/data/GetAllYearsByBoard";
 import { createYear } from "@/domain/useCases/years/creation/CreateYear";
-
 import { getMonthsByYear } from "@/domain/useCases/months/data/GetMonthsByYear";
 import { createMonth } from "@/domain/useCases/months/creation/CreateMonth";
-
 import { createTransaction } from "@/domain/useCases/transactions/creation/CreateTransaction";
 import { aggregateTransactions } from "@/domain/useCases/transactions/data/AggregateTransactions";
-
 import { createTransactionSchema } from "@/app/api/_validation/transaction.schema";
 
 const transactionRepository = new TransactionRepository();

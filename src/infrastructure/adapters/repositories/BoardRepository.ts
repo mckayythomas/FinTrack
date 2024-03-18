@@ -1,9 +1,9 @@
+import mongoose from "mongoose";
+import dbConnect from "@/infrastructure/db/mongoose.connection";
 import { BoardModel } from "../../db/mongooseModels/board.model";
 import { IBoardEntity } from "../../../domain/entities/IBoardEntity";
 import { IBoardRepository } from "../interfaces/IBoardRepository";
 import { mapBoardDocumentToEntity } from "../boardMapper";
-import dbConnect from "@/infrastructure/db/mongoose.connection";
-import mongoose from "mongoose";
 
 export class BoardRepositoryError extends Error {
   constructor(message: string) {

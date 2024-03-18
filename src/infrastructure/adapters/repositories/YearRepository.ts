@@ -1,9 +1,9 @@
+import mongoose from "mongoose";
 import { YearModel } from "@/infrastructure/db/mongooseModels/year.model";
 import { IYearEntity } from "@/domain/entities/IYearEntity";
+import dbConnect from "@/infrastructure/db/mongoose.connection";
 import { IYearRepository } from "../interfaces/IYearRepository";
 import { mapYearDocumentToEntity } from "../yearMapper";
-import dbConnect from "@/infrastructure/db/mongoose.connection";
-import mongoose from "mongoose";
 
 export class YearRepositoryError extends Error {
   constructor(message: string) {

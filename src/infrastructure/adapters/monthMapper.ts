@@ -1,5 +1,5 @@
-import { IMonthDocument } from "../db/interfaces/IMonthDocument";
 import { IMonthEntity } from "@/domain/entities/IMonthEntity";
+import { IMonthDocument } from "../db/interfaces/IMonthDocument";
 
 export function mapMonthDocumentToEntity(
   monthDocument: IMonthDocument

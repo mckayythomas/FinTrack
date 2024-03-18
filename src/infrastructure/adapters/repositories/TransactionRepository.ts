@@ -1,10 +1,9 @@
+import mongoose from "mongoose";
 import { TransactionModel } from "@/infrastructure/db/mongooseModels/transaction.model";
 import { ITransactionEntity } from "@/domain/entities/ITransactionEntity";
+import dbConnect from "@/infrastructure/db/mongoose.connection";
 import { ITransactionRepository } from "../interfaces/ITransactionRepository";
 import { mapTransactionDocumentToEntity } from "../transactionMapper";
-import dbConnect from "@/infrastructure/db/mongoose.connection";
-import mongoose from "mongoose";
-import { Transaction } from "mongodb";
 
 export class TransactionRepositoryError extends Error {
   constructor(message: string) {

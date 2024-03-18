@@ -1,5 +1,5 @@
-import { IYearDocument } from "../db/interfaces/IYearDocument";
 import { IYearEntity } from "@/domain/entities/IYearEntity";
+import { IYearDocument } from "../db/interfaces/IYearDocument";
 
 export function mapYearDocumentToEntity(
   yearDocument: IYearDocument

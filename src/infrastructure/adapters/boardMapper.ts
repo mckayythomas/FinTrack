@@ -1,5 +1,5 @@
-import { IBoardDocument } from "../db/interfaces/IBoardDocument";
 import { IBoardEntity } from "@/domain/entities/IBoardEntity";
+import { IBoardDocument } from "../db/interfaces/IBoardDocument";
 
 export function mapBoardDocumentToEntity(
   boardDocument: IBoardDocument

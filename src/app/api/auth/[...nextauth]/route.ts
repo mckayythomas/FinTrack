@@ -1,4 +1,3 @@
-import clientPromise from "@/infrastructure/db/mongodb.connection";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import NextAuth from "next-auth";
 import { Adapter } from "next-auth/adapters";
@@ -6,6 +5,7 @@ import { Adapter } from "next-auth/adapters";
 // import FacebookProvider from "next-auth/providers/facebook";
 import GoogleProvider from "next-auth/providers/google";
 // import EmailProvider from "next-auth/providers/email";
+import clientPromise from "@/infrastructure/db/mongodb.connection";
 
 export const authOptions = {
   providers: [
