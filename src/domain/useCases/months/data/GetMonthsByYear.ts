@@ -14,9 +14,6 @@ export async function getMonthsByYear(
 ): Promise<IMonthEntity[]> {
   try {
     const months = await monthRepository.findAllByYearId(yearId);
-    if (months.length === 0) {
-      throw new GetMonthsByYearError(`No months found for yearId: ${yearId}`);
-    }
     return months;
   } catch (error: any) {
     if (error instanceof MonthRepositoryError) {

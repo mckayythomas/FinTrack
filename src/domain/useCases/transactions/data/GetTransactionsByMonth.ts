@@ -14,11 +14,6 @@ export async function getTransactionsByMonth(
 ): Promise<ITransactionEntity[]> {
   try {
     const transactions = await transactionRepository.findAllByMonthId(monthId);
-    if (transactions.length === 0) {
-      throw new GetTransactionsByMonthError(
-        `No transactions found for monthId: ${monthId}`
-      );
-    }
     return transactions;
   } catch (error: any) {
     if (error instanceof TransactionRepositoryError) {

@@ -11,7 +11,6 @@ export const YearSchema = new Schema<IYearDocument>(
       type: Schema.Types.ObjectId,
       required: true,
       description: "Reference to the associated board",
-      ref: "Board",
     },
     year: {
       type: Number,

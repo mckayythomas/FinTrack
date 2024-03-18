@@ -14,7 +14,7 @@ export async function createYear(
 ): Promise<IYearEntity> {
   try {
     const createdYear = await yearRepository.create(year);
-    if (createdYear) {
+    if (!createdYear) {
       throw new CreateYearError(`Unable to create year: ${year}`);
     }
     return createdYear;

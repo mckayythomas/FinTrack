@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import { Schema } from "mongoose";
 import { ITransactionDocument } from "../interfaces/ITransactionDocument";
 
 export const TransactionSchema = new Schema<ITransactionDocument>(
@@ -11,7 +11,6 @@ export const TransactionSchema = new Schema<ITransactionDocument>(
       type: Schema.Types.ObjectId,
       required: true,
       description: "Reference to the associated month.",
-      ref: "Month",
     },
     name: {
       type: String,
@@ -71,6 +70,7 @@ export const TransactionSchema = new Schema<ITransactionDocument>(
     customCategory: {
       type: Schema.Types.ObjectId,
       description: "Reference to a custom category created by the user.",
+      default: null,
     },
     createdAt: {
       type: Number,

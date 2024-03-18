@@ -15,17 +15,10 @@ export class YearRepository implements IYearRepository {
   async findAllByBoardId(boardId: string): Promise<IYearEntity[]> {
     try {
       await dbConnect();
-      const months = await YearModel.find({ boardId: boardId });
-
-      // Check for empty results
-      if (months.length === 0) {
-        throw new YearRepositoryError(
-          `No months found for boardId: ${boardId}`
-        );
-      }
+      const years = await YearModel.find({ boardId: boardId });
 
       // Map to entity from document
-      const yearsAsEntity = months.map(mapYearDocumentToEntity);
+      const yearsAsEntity = years.map(mapYearDocumentToEntity);
       return yearsAsEntity;
     } catch (error: any) {
       if (error instanceof mongoose.Error) {
@@ -38,7 +31,7 @@ export class YearRepository implements IYearRepository {
         }
       } else {
         throw new YearRepositoryError(
-          `Error finding months with boardId: ${boardId} \n${error.message}`
+          `Error finding years with boardId: ${boardId} \n${error.message}`
         );
       }
     }
@@ -47,16 +40,16 @@ export class YearRepository implements IYearRepository {
   async findOneById(yearId: string): Promise<IYearEntity> {
     try {
       await dbConnect();
-      const month = await YearModel.findById(yearId);
+      const year = await YearModel.findById(yearId);
 
       // Handle month not found
-      if (!month) {
-        throw new YearRepositoryError(`Month with ID ${yearId} not found`);
+      if (!year) {
+        return year;
       }
 
       // Map to entity from document
-      const monthAsEntity = mapYearDocumentToEntity(month);
-      return monthAsEntity;
+      const yearAsEntity = mapYearDocumentToEntity(year);
+      return yearAsEntity;
     } catch (error: any) {
       if (error instanceof mongoose.Error) {
         throw new YearRepositoryError(`Mongoose error finding year: ${error}`);
@@ -74,7 +67,7 @@ export class YearRepository implements IYearRepository {
       const newObjectId = new mongoose.Types.ObjectId();
       year._id = newObjectId.toString();
       const yearModel = new YearModel(year);
-      const newYear = yearModel.save();
+      const newYear = await yearModel.save();
 
       //   Handle creation error
       if (!newYear) {
@@ -107,13 +100,6 @@ export class YearRepository implements IYearRepository {
         new: true,
       });
 
-      // Handle update error
-      if (!updatedYear) {
-        throw new YearRepositoryError(
-          `Year with ID ${yearId} not found or update failed`
-        );
-      }
-
       // Map to entity from document
       const updatedYearAsEntity = mapYearDocumentToEntity(updatedYear);
       return updatedYearAsEntity;
@@ -133,10 +119,7 @@ export class YearRepository implements IYearRepository {
   async delete(yearId: string): Promise<void> {
     try {
       await dbConnect();
-      const deletedYear = await YearModel.findByIdAndDelete(yearId);
-      if (!deletedYear) {
-        throw new YearRepositoryError(`Year with id ${yearId}`);
-      }
+      await YearModel.findByIdAndDelete(yearId);
     } catch (error: any) {
       if (error instanceof mongoose.Error) {
         if (error.name === "CastError") {

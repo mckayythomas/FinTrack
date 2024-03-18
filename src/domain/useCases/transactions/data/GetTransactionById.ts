@@ -14,11 +14,6 @@ export async function getTransactionById(
 ): Promise<ITransactionEntity> {
   try {
     const transaction = await transactionRepository.findOneById(transactionId);
-    if (!transaction) {
-      throw new GetTransactionByIdError(
-        `Unable to find transaction with transactionId: ${transactionId}`
-      );
-    }
     return transaction;
   } catch (error: any) {
     if (error instanceof TransactionRepositoryError) {

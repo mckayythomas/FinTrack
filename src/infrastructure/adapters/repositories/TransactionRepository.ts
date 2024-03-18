@@ -18,13 +18,6 @@ export class TransactionRepository implements ITransactionRepository {
       await dbConnect();
       const transactions = await TransactionModel.find({ monthId: monthId });
 
-      // check for empty results
-      if (transactions.length === 0) {
-        throw new TransactionRepositoryError(
-          `No transactions found for monthId: ${monthId}`
-        );
-      }
-
       // Map to entity from document
       const transactionsAsEntity = transactions.map(
         mapTransactionDocumentToEntity
@@ -36,7 +29,7 @@ export class TransactionRepository implements ITransactionRepository {
           throw new TransactionRepositoryError(`Invalid month ID: ${monthId}`);
         } else {
           throw new TransactionRepositoryError(
-            `Mongoose error finding transactions with monthId: ${monthId} \n${error.message}`
+            `Mongoose error finding transactions with monthId: ${monthId} \n${error}`
           );
         }
       } else {
@@ -54,9 +47,7 @@ export class TransactionRepository implements ITransactionRepository {
 
       // Handle transaction not found
       if (!transaction) {
-        throw new TransactionRepositoryError(
-          `Transaction with ID ${transactionId} not found`
-        );
+        return transaction;
       }
 
       // Map to entity from document
@@ -81,7 +72,7 @@ export class TransactionRepository implements ITransactionRepository {
       const newObjectId = new mongoose.Types.ObjectId();
       transaction._id = newObjectId.toString();
       const transactionModel = new TransactionModel(transaction);
-      const newTransaction = transactionModel.save();
+      const newTransaction = await transactionModel.save();
 
       // Handle Transaction not created
       if (!newTransaction) {
@@ -96,6 +87,7 @@ export class TransactionRepository implements ITransactionRepository {
       return newTransactionAsEntity;
     } catch (error: any) {
       if (error instanceof mongoose.Error) {
+        console.error(error);
         throw new TransactionRepositoryError(
           `Mongoose error creating transaction: ${error.message}`
         );
@@ -133,7 +125,7 @@ export class TransactionRepository implements ITransactionRepository {
     } catch (error: any) {
       if (error instanceof mongoose.Error) {
         throw new TransactionRepositoryError(
-          `Mongoose error creating updating transaction: ${error.message}`
+          `Mongoose error creating updating transaction: ${error}`
         );
       } else {
         throw new TransactionRepositoryError(
@@ -146,14 +138,7 @@ export class TransactionRepository implements ITransactionRepository {
   async delete(transactionId: string): Promise<void> {
     try {
       await dbConnect();
-      const deletedTransaction = await TransactionModel.findByIdAndDelete(
-        transactionId
-      );
-      if (!deletedTransaction) {
-        throw new TransactionRepositoryError(
-          `Transaction with Id: ${transactionId}`
-        );
-      }
+      await TransactionModel.findByIdAndDelete(transactionId);
     } catch (error: any) {
       if (error instanceof mongoose.Error) {
         if (error.name === "CastError") {
@@ -162,7 +147,7 @@ export class TransactionRepository implements ITransactionRepository {
           );
         } else {
           throw new TransactionRepositoryError(
-            `Mongoose error deleting transaction with id:${transactionId} \n${error.message}`
+            `Mongoose error deleting transaction with id:${transactionId} \n${error}`
           );
         }
       } else {
@@ -178,8 +163,9 @@ export class TransactionRepository implements ITransactionRepository {
   ): Promise<{ totalExpenses: number; totalIncome: number }> {
     try {
       await dbConnect();
+      const monthIdObjectId = new mongoose.Types.ObjectId(monthId);
       const aggregatedTransactions = await TransactionModel.aggregate([
-        { $match: { monthId: monthId } },
+        { $match: { monthId: monthIdObjectId } },
         { $group: { _id: "$type", totalAmount: { $sum: "$amount" } } },
       ]);
 
@@ -218,7 +204,7 @@ export class TransactionRepository implements ITransactionRepository {
     } catch (error: any) {
       if (error instanceof mongoose.Error) {
         throw new TransactionRepositoryError(
-          `Mongoose error aggregating amounts for monthId: ${monthId} \n${error.message}`
+          `Mongoose error aggregating amounts for monthId: ${monthId} \n${error}`
         );
       } else {
         throw new TransactionRepositoryError(

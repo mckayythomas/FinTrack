@@ -14,9 +14,6 @@ export async function getYearsByBoard(
 ): Promise<IYearEntity[]> {
   try {
     const years = await yearRepository.findAllByBoardId(boardId);
-    if (years.length === 0) {
-      throw new GetYearsByBoardError(`No years found for boardId: ${boardId}`);
-    }
     return years;
   } catch (error: any) {
     if (error instanceof YearRepositoryError) {

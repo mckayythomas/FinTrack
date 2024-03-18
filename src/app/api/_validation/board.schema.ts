@@ -7,14 +7,18 @@ const SharedUserSchema = z.object({
 
 export const createBoardSchema = z
   .object({
-    _id: z.string().optional(),
-    userId: z.string(),
-    name: z.string(),
-    description: z.string().optional().default(""),
+    name: z.string({
+      required_error: "name field is required",
+      invalid_type_error: "name must be a string",
+    }),
+    description: z
+      .string({ invalid_type_error: "description must be a string" })
+      .optional()
+      .default(""),
     privacy: z.enum(["private", "shared"]).default("private"),
     sharedUsers: z.array(SharedUserSchema).optional().default([]),
-    createdAt: z.number(),
-    updatedAt: z.number(),
+    createdAt: z.never(),
+    updatedAt: z.never(),
   })
   .omit({ createdAt: true, updatedAt: true });
 

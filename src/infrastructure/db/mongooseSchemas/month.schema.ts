@@ -11,7 +11,6 @@ export const MonthSchema = new Schema<IMonthDocument>(
       type: Schema.Types.ObjectId,
       required: true,
       description: "Reference to the associated year",
-      ref: "Year",
     },
     month: {
       type: Number,

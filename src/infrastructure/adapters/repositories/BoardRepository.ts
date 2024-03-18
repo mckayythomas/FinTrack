@@ -17,11 +17,6 @@ export class BoardRepository implements IBoardRepository {
       await dbConnect();
       const boards = await BoardModel.find({ userId: userId });
 
-      // Check for empty results
-      if (boards.length === 0) {
-        throw new BoardRepositoryError(`No boards found for userId: ${userId}`);
-      }
-
       // Map to entity from document
       const boardsAsEntity = boards.map(mapBoardDocumentToEntity);
       return boardsAsEntity;
@@ -49,7 +44,7 @@ export class BoardRepository implements IBoardRepository {
 
       // Handle board not found
       if (!board) {
-        throw new BoardRepositoryError(`Board with ID ${boardId} not found`);
+        return board;
       }
 
       // Map to entity from document
@@ -133,10 +128,7 @@ export class BoardRepository implements IBoardRepository {
   async delete(boardId: string): Promise<void> {
     try {
       await dbConnect();
-      const deletedBoard = await BoardModel.findByIdAndDelete(boardId);
-      if (!deletedBoard) {
-        throw new BoardRepositoryError(`Board with id ${boardId} not found`);
-      }
+      await BoardModel.findByIdAndDelete(boardId);
     } catch (error: any) {
       if (error instanceof mongoose.Error) {
         if (error.name === "CastError") {
@@ -159,11 +151,6 @@ export class BoardRepository implements IBoardRepository {
       const sharedBoards = await BoardModel.find({
         sharedUsers: { $elemMatch: { userId: userId } },
       });
-      if (sharedBoards.length === 0) {
-        throw new BoardRepositoryError(
-          `No shared boards found with userId: ${userId}`
-        );
-      }
 
       const sharedBoardsAsEntity = sharedBoards.map(mapBoardDocumentToEntity);
 

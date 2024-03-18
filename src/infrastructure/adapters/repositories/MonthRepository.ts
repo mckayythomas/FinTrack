@@ -17,11 +17,6 @@ export class MonthRepository implements IMonthRepository {
       await dbConnect();
       const months = await MonthModel.find({ yearId: yearId });
 
-      // Check for empty results
-      if (months.length === 0) {
-        throw new MonthRepositoryError(`No months found for yearId: ${yearId}`);
-      }
-
       // Map to entity from document
       const monthsAsEntity = months.map(mapMonthDocumentToEntity);
       return monthsAsEntity;
@@ -49,7 +44,7 @@ export class MonthRepository implements IMonthRepository {
 
       // Handle month not found
       if (!month) {
-        throw new MonthRepositoryError(`Month with ID ${monthId} not found`);
+        return month;
       }
 
       // Map to entity from document
@@ -133,10 +128,7 @@ export class MonthRepository implements IMonthRepository {
   async delete(monthId: string): Promise<void> {
     try {
       await dbConnect();
-      const deletedMonth = await MonthModel.findByIdAndDelete(monthId);
-      if (!deletedMonth) {
-        throw new MonthRepositoryError(`Month with id ${monthId}`);
-      }
+      await MonthModel.findByIdAndDelete(monthId);
     } catch (error: any) {
       if (error instanceof mongoose.Error) {
         if (error.name === "CastError") {
@@ -159,41 +151,29 @@ export class MonthRepository implements IMonthRepository {
   ): Promise<{ totalIncome: number; totalExpenses: number }> {
     try {
       await dbConnect();
+      const yearIdObjectId = new mongoose.Types.ObjectId(yearId);
       const aggregatedTransactions = await MonthModel.aggregate([
-        { $match: { yearId: yearId } },
-        { $group: { _id: "$type", totalAmount: { $sum: "$amount" } } },
+        { $match: { yearId: yearIdObjectId } },
+        {
+          $group: {
+            _id: null,
+            totalIncome: { $sum: { $sum: "$totalIncome" } },
+            totalExpenses: { $sum: { $sum: "$totalExpenses" } },
+          },
+        },
       ]);
-
       //   Handle error during aggregating
       if (!aggregatedTransactions) {
         throw new MonthRepositoryError(
           `Error aggregating transactions with yearId: ${yearId}`
         );
-      } else if (aggregatedTransactions.length > 2) {
-        throw new MonthRepositoryError(
-          `Error aggregating transactions, data inconsistent: ${aggregatedTransactions}`
-        );
       }
 
       // Return in formatted form
       const formattedAggregatedTransactions = {
-        totalExpenses: 0,
-        totalIncome: 0,
+        totalExpenses: aggregatedTransactions[0].totalExpenses,
+        totalIncome: aggregatedTransactions[0].totalIncome,
       };
-
-      for (const transactionTotal of aggregatedTransactions) {
-        if (transactionTotal._id === "expense") {
-          formattedAggregatedTransactions.totalExpenses =
-            transactionTotal.totalAmount;
-        } else if (transactionTotal._id === "income") {
-          formattedAggregatedTransactions.totalIncome =
-            transactionTotal.totalAmount;
-        } else {
-          throw new MonthRepositoryError(
-            `Error formatting aggregated transactions, data inconsistency with transactionTotal: ${transactionTotal}`
-          );
-        }
-      }
 
       return formattedAggregatedTransactions;
     } catch (error: any) {
