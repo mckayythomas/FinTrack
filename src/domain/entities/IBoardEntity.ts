@@ -4,10 +4,12 @@ export interface IBoardEntity {
   name: string;
   description?: string;
   privacy: "private" | "shared";
-  sharedUsers?: {
-    userId: string;
-    accessLevel: "view-only" | "contributor";
-  }[];
+  sharedUsers?: ISharedUsers[];
   createdAt?: number;
   updatedAt?: number;
+}
+
+export interface ISharedUsers {
+  userId: string;
+  accessLevel: "view-only" | "contributor";
 }
