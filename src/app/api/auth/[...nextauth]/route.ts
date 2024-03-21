@@ -1,8 +1,12 @@
+import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import NextAuth from "next-auth";
+import { Adapter } from "next-auth/adapters";
 // import AppleProvider from "next-auth/providers/apple";
 // import FacebookProvider from "next-auth/providers/facebook";
 import GoogleProvider from "next-auth/providers/google";
 // import EmailProvider from "next-auth/providers/email";
+import { Session, User } from "next-auth";
+import clientPromise from "@/infrastructure/db/mongodb.connection";
 
 export const authOptions = {
   providers: [
@@ -25,6 +29,15 @@ export const authOptions = {
     //   from: "NextAuth.js <no-reply@example.com>",
     // }),
   ],
+  adapter: MongoDBAdapter(clientPromise) as Adapter,
+  callbacks: {
+    session({ session, user }: { session: Session; user: User }) {
+      if (session.user) {
+        session.user.id = user.id;
+      }
+      return session;
+    },
+  },
 };
 
 export const handler = NextAuth(authOptions);

@@ -1,3 +1,16 @@
 {
-  "extends": "next/core-web-vitals"
+  "extends": "next/core-web-vitals",
+  "plugins": ["import"],
+  "rules": {
+    "import/order": [
+      "warn",
+      {
+        "groups": [
+          ["external", "builtin"],
+          "internal",
+          ["parent", "sibling", "index"]
+        ]
+      }
+    ]
+  }
 }
