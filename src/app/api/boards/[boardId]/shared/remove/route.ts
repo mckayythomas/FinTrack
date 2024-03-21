@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import { BoardRepository } from "@/infrastructure/adapters/repositories/BoardRepository";
 import { UserRepository } from "@/infrastructure/adapters/repositories/UserRepository";
 import { unshareBoardWithUserSchema } from "@/app/api/_validation/board.schema";
 import { getBoardById } from "@/domain/useCases/boards/data/GetBoardById";
 import { unshareBoardWithUser } from "@/domain/useCases/boards/management/UnshareBoard";
 import { getUserByInfo } from "@/domain/useCases/users/getUserByInfo";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 const boardRepository = new BoardRepository();
 const userRepository = new UserRepository();
@@ -15,9 +17,26 @@ export async function PATCH(
   { params }: { params: { boardId: string } }
 ) {
   try {
-    // Authorize user
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: "User not logged in." },
+        { status: 401 }
+      );
+    }
+    const userId = session.user.id;
     const boardId = params.boardId;
-    const data = request.json();
+
+    // Validate user owns board
+    const userBoard = await getBoardById(boardId, boardRepository);
+    if (userBoard.userId !== userId) {
+      return NextResponse.json(
+        { error: "User for board not logged in." },
+        { status: 401 }
+      );
+    }
+
+    const data = await request.json();
 
     // Validate user data
     const unsharingBoardWithUserData =
@@ -42,13 +61,13 @@ export async function PATCH(
       unsharingBoardWithUserData.data,
       userRepository
     );
-    const userId = user._id;
+    const unsharedUserId = user._id;
     const boardToUnshare = await getBoardById(boardId, boardRepository);
 
     // Unshare board
     const board = await unshareBoardWithUser(
       boardId,
-      userId,
+      unsharedUserId,
       boardToUnshare,
       boardRepository
     );

@@ -14,11 +14,6 @@ export async function getAllSharedBoards(
 ): Promise<IBoardEntity[]> {
   try {
     const sharedBoards = await boardRepository.findAllSharedBoards(userId);
-    if (sharedBoards.length === 0) {
-      throw new GetAllSharedBoardsError(
-        `No shared boards found for userId: ${userId}`
-      );
-    }
     return sharedBoards;
   } catch (error: any) {
     if (error instanceof BoardRepositoryError) {

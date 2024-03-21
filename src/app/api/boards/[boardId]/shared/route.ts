@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import { BoardRepository } from "@/infrastructure/adapters/repositories/BoardRepository";
 import { UserRepository } from "@/infrastructure/adapters/repositories/UserRepository";
 import { shareBoardWithUserSchema } from "@/app/api/_validation/board.schema";
 import { getBoardById } from "@/domain/useCases/boards/data/GetBoardById";
 import { shareBoardWithUser } from "@/domain/useCases/boards/management/ShareBoard";
 import { getUserByInfo } from "@/domain/useCases/users/getUserByInfo";
-import { getUserById } from "@/domain/useCases/users/getUserById";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 const boardRepository = new BoardRepository();
 const userRepository = new UserRepository();
@@ -16,29 +17,24 @@ export async function GET(
   { params }: { params: { boardId: string } }
 ) {
   try {
-    // Authenticate user
-    const boardId = params.boardId;
-
-    // get boards shared users
-    const board = await getBoardById(boardId, boardRepository);
-    const sharedUsersData = board.sharedUsers;
-    if (sharedUsersData!.length === 0 || !sharedUsersData) {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
       return NextResponse.json(
-        { message: "No shared users found for board" },
-        { status: 404 }
+        { error: "User not logged in." },
+        { status: 401 }
       );
     }
+    const userId = session.user.id;
+    const boardId = params.boardId;
 
-    const users: any[] = [];
-    sharedUsersData.forEach(async (sharedUserData) => {
-      const sharedUser = await getUserById(
-        sharedUserData.userId,
-        userRepository
+    // Validate user owns board
+    const userBoard = await getBoardById(boardId, boardRepository);
+    if (userBoard.userId !== userId) {
+      return NextResponse.json(
+        { error: "User for board not logged in." },
+        { status: 401 }
       );
-      users.push(sharedUser);
-    });
-
-    return NextResponse.json({ users }, { status: 200 });
+    }
   } catch (error: any) {
     console.error(`Error getting shared users for board: ${error}`);
     return NextResponse.json(
@@ -49,21 +45,41 @@ export async function GET(
 }
 
 // PATCH Share board with user
-export async function PATCH(
+export async function POST(
   request: NextRequest,
   { params }: { params: { boardId: string } }
 ) {
   try {
-    // Authorize user
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: "User not logged in." },
+        { status: 401 }
+      );
+    }
+    const userId = session.user.id;
     const boardId = params.boardId;
-    const data = request.json();
+
+    // Validate user owns board
+    const userBoard = await getBoardById(boardId, boardRepository);
+    if (userBoard.userId !== userId) {
+      return NextResponse.json(
+        { error: "User for board not logged in." },
+        { status: 401 }
+      );
+    }
+
+    const data = await request.json();
 
     // Validate user data
     const sharingBoardWithUserData = shareBoardWithUserSchema.safeParse(data);
     if (!sharingBoardWithUserData.success) {
       const errorMessages: string[] = [];
+      console.log(sharingBoardWithUserData.error);
       sharingBoardWithUserData.error.issues.forEach((issue: any) => {
-        const message = `Field: ${issue.path[0]} - ${issue.message}`;
+        const message = `Field: ${issue.path[0] || "unknown"} - ${
+          issue.message
+        }`;
         errorMessages.push(message);
       });
       return NextResponse.json(
@@ -80,13 +96,25 @@ export async function PATCH(
       sharingBoardWithUserData.data,
       userRepository
     );
-    const userId = user._id;
+    const sharedUserId = user._id;
     const accessLevel = sharingBoardWithUserData.data.accessLevel;
     const addedUserData = {
-      userId: userId,
+      userId: sharedUserId,
       accessLevel: accessLevel,
     };
     const boardToShare = await getBoardById(boardId, boardRepository);
+    if (
+      boardToShare.sharedUsers &&
+      boardToShare.sharedUsers.find(
+        (user) => user.userId === addedUserData.userId
+      )
+    ) {
+      return NextResponse.json(
+        { message: "Board already shared with user." },
+        { status: 400 }
+      );
+    }
+
     const board = await shareBoardWithUser(
       boardId,
       addedUserData,

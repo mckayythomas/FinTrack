@@ -149,7 +149,7 @@ export class BoardRepository implements IBoardRepository {
   async findAllSharedBoards(userId: string): Promise<IBoardEntity[]> {
     try {
       const sharedBoards = await BoardModel.find({
-        sharedUsers: { $elemMatch: { userId: userId } },
+        "sharedUsers.userId": userId,
       });
 
       const sharedBoardsAsEntity = sharedBoards.map(mapBoardDocumentToEntity);

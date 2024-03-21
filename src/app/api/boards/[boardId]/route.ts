@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import { BoardRepository } from "@/infrastructure/adapters/repositories/BoardRepository";
 import { updateBoardSchema } from "@/app/api/_validation/board.schema";
 import { getBoardById } from "@/domain/useCases/boards/data/GetBoardById";
 import { updateBoard } from "@/domain/useCases/boards/management/UpdateBoard";
 import { deleteBoard } from "@/domain/useCases/boards/management/DeleteBoard";
+import { authOptions } from "../../auth/[...nextauth]/route";
 
 const boardRepository = new BoardRepository();
 
@@ -13,13 +15,27 @@ export async function GET(
   { params }: { params: { boardId: string } }
 ) {
   try {
-    // Authenticate user
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: "User not logged in." },
+        { status: 401 }
+      );
+    }
+
     const boardId = params.boardId;
     const board = await getBoardById(boardId, boardRepository);
     if (!board) {
       return NextResponse.json(
         { error: `No board found for boardId: ${boardId}` },
         { status: 404 }
+      );
+    }
+
+    if (board.userId !== session.user.id) {
+      return NextResponse.json(
+        { error: "User for board not logged in." },
+        { status: 401 }
       );
     }
 
@@ -39,9 +55,24 @@ export async function PATCH(
   { params }: { params: { boardId: string } }
 ) {
   try {
-    // Authenticate user
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: "User not logged in." },
+        { status: 401 }
+      );
+    }
     const boardId = params.boardId;
     const data = await request.json();
+
+    // Validate user owns board
+    const userBoard = await getBoardById(boardId, boardRepository);
+    if (userBoard.userId !== session.user.id) {
+      return NextResponse.json(
+        { error: "User for board not logged in." },
+        { status: 401 }
+      );
+    }
 
     // User input validated as valid board data
     const updateBoardData = updateBoardSchema.safeParse(data);
@@ -82,8 +113,25 @@ export async function DELETE(
   { params }: { params: { boardId: string } }
 ) {
   try {
-    // Authenticate user
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: "User not logged in." },
+        { status: 401 }
+      );
+    }
+    const userId = session.user.id;
     const boardId = params.boardId;
+
+    // Validate user owns board
+    const userBoard = await getBoardById(boardId, boardRepository);
+    if (userBoard.userId !== userId) {
+      return NextResponse.json(
+        { error: "User for board not logged in." },
+        { status: 401 }
+      );
+    }
+
     await deleteBoard(boardId, boardRepository);
     return NextResponse.json(
       { message: "Board deleted successfully" },

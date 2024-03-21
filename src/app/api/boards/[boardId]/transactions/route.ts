@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import { YearRepository } from "@/infrastructure/adapters/repositories/YearRepository";
 import { MonthRepository } from "@/infrastructure/adapters/repositories/MonthRepository";
 import { TransactionRepository } from "@/infrastructure/adapters/repositories/TransactionRepository";
@@ -9,8 +10,12 @@ import { createMonth } from "@/domain/useCases/months/creation/CreateMonth";
 import { createTransaction } from "@/domain/useCases/transactions/creation/CreateTransaction";
 import { aggregateTransactions } from "@/domain/useCases/transactions/data/AggregateTransactions";
 import { createTransactionSchema } from "@/app/api/_validation/transaction.schema";
+import { getBoardById } from "@/domain/useCases/boards/data/GetBoardById";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { BoardRepository } from "@/infrastructure/adapters/repositories/BoardRepository";
 
 const transactionRepository = new TransactionRepository();
+const boardRepository = new BoardRepository();
 const yearRepository = new YearRepository();
 const monthRepository = new MonthRepository();
 
@@ -20,9 +25,26 @@ export async function POST(
   { params }: { params: { boardId: string } }
 ) {
   try {
-    // Check for user authentication.
-    const data = await request.json();
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: "User not logged in." },
+        { status: 401 }
+      );
+    }
+    const userId = session.user.id;
     const boardId = params.boardId;
+
+    // Validate user owns board
+    const userBoard = await getBoardById(boardId, boardRepository);
+    if (userBoard.userId !== userId) {
+      return NextResponse.json(
+        { error: "User for board not logged in." },
+        { status: 401 }
+      );
+    }
+
+    const data = await request.json();
 
     const transactionData = createTransactionSchema.safeParse(data);
     if (!transactionData.success) {

@@ -38,8 +38,7 @@ export const shareBoardWithUserSchema = z
       const { email, name } = data;
       return (
         (email === undefined) !== (name === undefined) &&
-        email !== undefined &&
-        name !== undefined
+        (email !== undefined || name !== undefined)
       );
     },
     {
@@ -57,8 +56,8 @@ export const unshareBoardWithUserSchema = z
     (data) => {
       const { email, name } = data;
       return (
-        (email === undefined) !== (name === undefined) &&
-        email !== undefined &&
+        ((email === undefined) !== (name === undefined) &&
+          email !== undefined) ||
         name !== undefined
       );
     },

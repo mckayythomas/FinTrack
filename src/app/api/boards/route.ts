@@ -1,16 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+
 import { BoardRepository } from "@/infrastructure/adapters/repositories/BoardRepository";
 import { createBoardSchema } from "@/app/api/_validation/board.schema";
 import { createBoard } from "@/domain/useCases/boards/creation/CreateBoard";
 import { getBoardsByUser } from "@/domain/useCases/boards/data/GetAllUserBoards";
+import { authOptions } from "../auth/[...nextauth]/route";
 
 const boardRepository = new BoardRepository();
 
 // GET get all boards by user id
 export async function GET() {
   try {
-    // Change to session data and authenticate user
-    const userId = "65d42496da86f15e38611ede";
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: "User not logged in." },
+        { status: 401 }
+      );
+    }
+    const userId = session.user.id;
     const boards = await getBoardsByUser(userId, boardRepository);
     if (boards.length === 0) {
       return NextResponse.json(
@@ -32,9 +41,16 @@ export async function GET() {
 // POST create board
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication first
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: "User not logged in." },
+        { status: 401 }
+      );
+    }
+
+    const userId = session.user.id;
     const data = await request.json();
-    const userId = "65d42496da86f15e38611ede";
 
     // User input validated as valid board data
     const boardData = createBoardSchema.safeParse(data);

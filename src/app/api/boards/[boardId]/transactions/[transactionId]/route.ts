@@ -1,30 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
-
+import { getServerSession } from "next-auth";
 import { TransactionRepository } from "@/infrastructure/adapters/repositories/TransactionRepository";
 import { MonthRepository } from "@/infrastructure/adapters/repositories/MonthRepository";
 import { YearRepository } from "@/infrastructure/adapters/repositories/YearRepository";
-
 import { getTransactionById } from "@/domain/useCases/transactions/data/GetTransactionById";
 import { updateTransaction } from "@/domain/useCases/transactions/management/UpdateTransaction";
 import { deleteTransaction } from "@/domain/useCases/transactions/management/DeleteTransaction";
 import { getTransactionsByMonth } from "@/domain/useCases/transactions/data/GetTransactionsByMonth";
 import { aggregateTransactions } from "@/domain/useCases/transactions/data/AggregateTransactions";
-
 import { getMonthsByYear } from "@/domain/useCases/months/data/GetMonthsByYear";
 import { getMonthById } from "@/domain/useCases/months/data/GetMonthById";
 import { createMonth } from "@/domain/useCases/months/creation/CreateMonth";
 import { deleteMonth } from "@/domain/useCases/months/management/DeleteMonth";
-
 import { getYearsByBoard } from "@/domain/useCases/years/data/GetAllYearsByBoard";
 import { createYear } from "@/domain/useCases/years/creation/CreateYear";
 import { deleteYear } from "@/domain/useCases/years/management/DeleteYear";
-
 import { updateTransactionSchema } from "@/app/api/_validation/transaction.schema";
 import { IMonthEntity } from "@/domain/entities/IMonthEntity";
+import { getBoardById } from "@/domain/useCases/boards/data/GetBoardById";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { BoardRepository } from "@/infrastructure/adapters/repositories/BoardRepository";
 
 const transactionRepository = new TransactionRepository();
 const monthRepository = new MonthRepository();
 const yearRepository = new YearRepository();
+const boardRepository = new BoardRepository();
 
 // GET retrieve individual transaction
 export async function GET(
@@ -32,7 +32,24 @@ export async function GET(
   { params }: { params: { boardId: string; transactionId: string } }
 ) {
   try {
-    // Authenticate user
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: "User not logged in." },
+        { status: 401 }
+      );
+    }
+    const userId = session.user.id;
+    const boardId = params.boardId;
+
+    // Validate user owns board
+    const userBoard = await getBoardById(boardId, boardRepository);
+    if (userBoard.userId !== userId) {
+      return NextResponse.json(
+        { error: "User for board not logged in." },
+        { status: 401 }
+      );
+    }
     const transactionId = params.transactionId;
     const transaction = await getTransactionById(
       transactionId,

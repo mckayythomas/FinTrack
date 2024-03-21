@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import { MonthRepository } from "@/infrastructure/adapters/repositories/MonthRepository";
 import { getMonthsByYear } from "@/domain/useCases/months/data/GetMonthsByYear";
+import { getBoardById } from "@/domain/useCases/boards/data/GetBoardById";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { BoardRepository } from "@/infrastructure/adapters/repositories/BoardRepository";
 
 const monthRepository = new MonthRepository();
+const boardRepository = new BoardRepository();
 
 // GET retrieve all months by year id
 export async function GET(
@@ -10,7 +15,24 @@ export async function GET(
   { params }: { params: { boardId: string; yearId: string } }
 ) {
   try {
-    // Authenticate user
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: "User not logged in." },
+        { status: 401 }
+      );
+    }
+    const userId = session.user.id;
+    const boardId = params.boardId;
+
+    // Validate user owns board
+    const userBoard = await getBoardById(boardId, boardRepository);
+    if (userBoard.userId !== userId) {
+      return NextResponse.json(
+        { error: "User for board not logged in." },
+        { status: 401 }
+      );
+    }
     const yearId = params.yearId;
     const months = await getMonthsByYear(yearId, monthRepository);
     if (!months) {
