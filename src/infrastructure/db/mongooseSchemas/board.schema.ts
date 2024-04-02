@@ -65,5 +65,5 @@ export const BoardSchema = new Schema<IBoardDocument>(
   },
   {
     timestamps: { currentTime: () => Math.floor(Date.now() / 1000) },
-  }
+  },
 );

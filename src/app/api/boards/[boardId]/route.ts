@@ -1,25 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { BoardRepository } from "@/infrastructure/adapters/repositories/BoardRepository";
 import { updateBoardSchema } from "@/app/api/_validation/board.schema";
 import { getBoardById } from "@/domain/useCases/boards/data/GetBoardById";
 import { updateBoard } from "@/domain/useCases/boards/management/UpdateBoard";
 import { deleteBoard } from "@/domain/useCases/boards/management/DeleteBoard";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { auth } from "@/infrastructure/auth/nextAuth";
 
 const boardRepository = new BoardRepository();
 
 // GET single board by id
 export async function GET(
   request: NextRequest,
-  { params }: { params: { boardId: string } }
+  { params }: { params: { boardId: string } },
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session || !session.user) {
       return NextResponse.json(
         { error: "User not logged in." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -28,14 +27,14 @@ export async function GET(
     if (!board) {
       return NextResponse.json(
         { error: `No board found for boardId: ${boardId}` },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     if (board.userId !== session.user.id) {
       return NextResponse.json(
         { error: "User for board not logged in." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -44,7 +43,7 @@ export async function GET(
     console.error(`Error getting board: ${error}`);
     return NextResponse.json(
       { error: "Something went wrong. Please try again later." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -52,14 +51,14 @@ export async function GET(
 // PATCH update single board name and description by id
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { boardId: string } }
+  { params }: { params: { boardId: string } },
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session || !session.user) {
       return NextResponse.json(
         { error: "User not logged in." },
-        { status: 401 }
+        { status: 401 },
       );
     }
     const boardId = params.boardId;
@@ -70,7 +69,7 @@ export async function PATCH(
     if (userBoard.userId !== session.user.id) {
       return NextResponse.json(
         { error: "User for board not logged in." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -87,14 +86,14 @@ export async function PATCH(
           message: "Invalid request data",
           errors: errorMessages,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const board = await updateBoard(
       boardId,
       updateBoardData.data,
-      boardRepository
+      boardRepository,
     );
 
     return NextResponse.json({ board }, { status: 200 });
@@ -102,7 +101,7 @@ export async function PATCH(
     console.error(`Error updating board: ${error}`);
     return NextResponse.json(
       { error: "Something went wrong. Please try again later." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -110,14 +109,14 @@ export async function PATCH(
 // DELETE delete single board by id
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { boardId: string } }
+  { params }: { params: { boardId: string } },
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session || !session.user) {
       return NextResponse.json(
         { error: "User not logged in." },
-        { status: 401 }
+        { status: 401 },
       );
     }
     const userId = session.user.id;
@@ -128,20 +127,20 @@ export async function DELETE(
     if (userBoard.userId !== userId) {
       return NextResponse.json(
         { error: "User for board not logged in." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     await deleteBoard(boardId, boardRepository);
     return NextResponse.json(
       { message: "Board deleted successfully" },
-      { status: 204 }
+      { status: 204 },
     );
   } catch (error: any) {
     console.error(`Error deleting board: ${error}`);
     return NextResponse.json(
       { error: "Something went wrong. Please try again later" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

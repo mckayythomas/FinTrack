@@ -3,5 +3,5 @@ export interface IUserEntity {
   name: string;
   email: string;
   image: string;
-  emailVerified: boolean | null;
+  emailVerified?: boolean | null;
 }
