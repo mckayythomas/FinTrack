@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { YearRepository } from "@/infrastructure/adapters/repositories/YearRepository";
 import { BoardRepository } from "@/infrastructure/adapters/repositories/BoardRepository";
 import { getYearById } from "@/domain/useCases/years/data/GetYearById";
 import { getBoardById } from "@/domain/useCases/boards/data/GetBoardById";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { auth } from "@/infrastructure/auth/nextAuth";
 
 const yearRepository = new YearRepository();
 const boardRepository = new BoardRepository();
@@ -12,14 +11,14 @@ const boardRepository = new BoardRepository();
 // GET retrieve data for a single year
 export async function GET(
   request: NextRequest,
-  { params }: { params: { boardId: string; yearId: string } }
+  { params }: { params: { boardId: string; yearId: string } },
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session || !session.user) {
       return NextResponse.json(
         { error: "User not logged in." },
-        { status: 401 }
+        { status: 401 },
       );
     }
     const userId = session.user.id;
@@ -27,10 +26,14 @@ export async function GET(
 
     // Validate user owns board
     const userBoard = await getBoardById(boardId, boardRepository);
-    if (userBoard.userId !== userId) {
+    if (
+      userBoard.userId !== session.user.id &&
+      userBoard.sharedUsers?.find((user) => user.userId !== session.user?.id)
+        ?.userId
+    ) {
       return NextResponse.json(
         { error: "User for board not logged in." },
-        { status: 401 }
+        { status: 401 },
       );
     }
     const yearId = params.yearId;
@@ -38,7 +41,7 @@ export async function GET(
     if (!year) {
       return NextResponse.json(
         { error: `No year found for yearId: ${yearId}` },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -47,7 +50,7 @@ export async function GET(
     console.error(`Error getting year: ${error}`);
     return NextResponse.json(
       { error: "Something went wrong. Please try again later." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

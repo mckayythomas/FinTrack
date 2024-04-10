@@ -34,26 +34,30 @@ export default function ShareBoard({ boardData }: IShareBoardProps) {
       body: JSON.stringify(sharedBoardData),
     });
     if (response.ok) {
-      const { board: updatedBoard } = await response.json();
       mutate(
-        "/api/boards",
-        (cachedData) => {
-          if (!cachedData || !cachedData.boards) return cachedData;
-          const index = cachedData.boards.findIndex(
-            (board: IBoardEntity) => board._id === boardData._id,
-          );
+        `/api/boards/${boardData._id}/shared/users`,
+        async (currentData) => {
+          if (currentData && Array.isArray(currentData.users)) {
+            const users = await fetch(
+              `/api/boards/${boardData._id}/shared/users`,
+            );
+            if (!users.ok) {
+              return currentData;
+            }
 
-          if (index !== -1) {
-            const updatedBoards = [...cachedData.boards];
-            updatedBoards[index] = updatedBoard;
-
-            return { ...cachedData, boards: updatedBoards };
+            const newUsers = await users.json();
+            return {
+              ...currentData,
+              users: newUsers.users,
+            };
           }
-          return cachedData;
+
+          return currentData;
         },
-        false,
+        true,
       );
       setIsOpen(false);
+      window.location.reload();
     } else {
       setShareError({
         statusCode: response.status,

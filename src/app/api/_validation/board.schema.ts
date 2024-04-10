@@ -48,22 +48,6 @@ export const shareBoardWithUserSchema = z
     },
   );
 
-export const unshareBoardWithUserSchema = z
-  .object({
-    email: z.string().email().optional(),
-    name: z.string().optional(),
-  })
-  .refine(
-    (data) => {
-      const { email, name } = data;
-      return (
-        ((email === undefined) !== (name === undefined) &&
-          email !== undefined) ||
-        name !== undefined
-      );
-    },
-    {
-      message: "You must provide either an email or a name, but not both.",
-      path: [],
-    },
-  );
+export const unshareBoardWithUserSchema = z.object({
+  userId: z.string(),
+});

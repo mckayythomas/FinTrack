@@ -4,7 +4,7 @@ export interface ITransactionEntity {
   name: string;
   type: "income" | "expense";
   amount: number;
-  date: number | Date;
+  date: number | Date | string;
   location: string;
   description?: string;
   category:

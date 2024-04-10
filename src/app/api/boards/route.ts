@@ -19,12 +19,6 @@ export async function GET() {
     }
     const userId = session.user.id!;
     const boards = await getBoardsByUser(userId, boardRepository);
-    if (boards.length === 0) {
-      return NextResponse.json(
-        { message: "No boards found for the user." },
-        { status: 404 },
-      );
-    }
 
     return NextResponse.json({ boards }, { status: 200 });
   } catch (error: any) {

@@ -18,7 +18,9 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body
+        className={`flex min-h-screen flex-col justify-between ${inter.className}`}
+      >
         <Header />
         <main className="mx-[5%] md:mx-[13%]">{children}</main>
         <Footer />

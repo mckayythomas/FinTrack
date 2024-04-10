@@ -7,6 +7,7 @@ import {
   ComponentDataErrorProps,
 } from "@/components/errors/DataError";
 import ShareBoard from "../management/ShareBoard";
+import UnshareBoard from "../management/UnshareBoard";
 
 interface ISharedUsersProps {
   boardData: IBoardEntity;
@@ -20,11 +21,11 @@ export default function SharedUsers({ boardData }: ISharedUsersProps) {
   );
   const [isOpen, setIsOpen] = useState(false);
 
-  const { data: sharedUsersData, error: sharedUsersDataError } = useSWR(
-    `/api/boards/${boardData._id}/shared/users`,
-    fetcher,
-  );
-  console.log(sharedUsersData);
+  const {
+    data: sharedUsersData,
+    error: sharedUsersDataError,
+    isLoading,
+  } = useSWR(`/api/boards/${boardData._id}/shared/users`, fetcher);
 
   if (sharedUsersDataError)
     return (
@@ -114,28 +115,35 @@ export default function SharedUsers({ boardData }: ISharedUsersProps) {
                   </button>
                 </div>
                 <div className="">
-                  {boardData.sharedUsers!.length === 0 ? (
-                    <>
-                      <div className="mx-1 my-1 flex h-[198px] items-center justify-center rounded-md border border-solid border-black text-center font-bold">
-                        <p>This Board is not shared with anyone yet.</p>
-                      </div>
-                    </>
+                  {isLoading ? (
+                    <div>
+                      <p>Loading Shared Users...</p>
+                    </div>
                   ) : (
                     <>
-                      {!sharedUsersData ? (
-                        <div>
-                          <p>Loading Shared Users...</p>
-                        </div>
+                      {boardData.sharedUsers!.length === 0 ? (
+                        <>
+                          <div className="mx-1 my-1 flex h-[198px] items-center justify-center rounded-md border border-solid border-black text-center font-bold">
+                            <p>This Board is not shared with anyone yet.</p>
+                          </div>
+                        </>
                       ) : (
-                        sharedUsersData.map((sharedUser: any) => (
-                          <div key={sharedUser._id}>
-                            <p>{sharedUser.name}</p>
-                            <p>{sharedUser.email}</p>
-                            <p>
+                        sharedUsersData.users.map((sharedUser: any) => (
+                          <div
+                            className="flex justify-between"
+                            key={sharedUser._id}
+                          >
+                            <p className="mr-2">{sharedUser.name}</p>
+                            <p className="mx-2">{sharedUser.email}</p>
+                            <p className="mx-2">
                               {sharedUser.accessLevel === "view-only"
                                 ? "View Only"
                                 : "Contributor"}
                             </p>
+                            <UnshareBoard
+                              userData={sharedUser}
+                              boardId={boardData._id!}
+                            />
                           </div>
                         ))
                       )}

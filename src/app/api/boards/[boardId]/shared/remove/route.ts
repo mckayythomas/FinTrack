@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { BoardRepository } from "@/infrastructure/adapters/repositories/BoardRepository";
 import { UserRepository } from "@/infrastructure/adapters/repositories/UserRepository";
 import { unshareBoardWithUserSchema } from "@/app/api/_validation/board.schema";
 import { getBoardById } from "@/domain/useCases/boards/data/GetBoardById";
 import { unshareBoardWithUser } from "@/domain/useCases/boards/management/UnshareBoard";
 import { getUserByInfo } from "@/domain/useCases/users/getUserByInfo";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { auth } from "@/infrastructure/auth/nextAuth";
+import { getUserById } from "@/domain/useCases/users/getUserById";
 
 const boardRepository = new BoardRepository();
 const userRepository = new UserRepository();
@@ -14,14 +14,14 @@ const userRepository = new UserRepository();
 // PATCH remove user from shared board
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { boardId: string } }
+  { params }: { params: { boardId: string } },
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session || !session.user) {
       return NextResponse.json(
         { error: "User not logged in." },
-        { status: 401 }
+        { status: 401 },
       );
     }
     const userId = session.user.id;
@@ -32,7 +32,7 @@ export async function PATCH(
     if (userBoard.userId !== userId) {
       return NextResponse.json(
         { error: "User for board not logged in." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -52,14 +52,14 @@ export async function PATCH(
           message: "Invalid request data",
           errors: errorMessages,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Get user data by email or by name
-    const user = await getUserByInfo(
-      unsharingBoardWithUserData.data,
-      userRepository
+    const user = await getUserById(
+      unsharingBoardWithUserData.data.userId,
+      userRepository,
     );
     const unsharedUserId = user._id;
     const boardToUnshare = await getBoardById(boardId, boardRepository);
@@ -69,23 +69,20 @@ export async function PATCH(
       boardId,
       unsharedUserId,
       boardToUnshare,
-      boardRepository
+      boardRepository,
     );
 
     return NextResponse.json(
       {
-        message: `Board unshared with user: ${
-          unsharingBoardWithUserData.data.email ||
-          unsharingBoardWithUserData.data.name
-        }`,
+        board,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error: any) {
     console.error(`Error unsharing board: ${error}`);
     return NextResponse.json(
       { error: "Something went wrong. Please try again later." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

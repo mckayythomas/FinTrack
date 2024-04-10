@@ -10,38 +10,38 @@ import { auth } from "@/infrastructure/auth/nextAuth";
 const boardRepository = new BoardRepository();
 const userRepository = new UserRepository();
 
-// GET all shared users
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { boardId: string } },
-) {
-  try {
-    const session = await auth();
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { error: "User not logged in." },
-        { status: 401 },
-      );
-    }
-    const userId = session.user.id;
-    const boardId = params.boardId;
+// // GET all shared users
+// export async function GET(
+//   request: NextRequest,
+//   { params }: { params: { boardId: string } },
+// ) {
+//   try {
+//     const session = await auth();
+//     if (!session || !session.user) {
+//       return NextResponse.json(
+//         { error: "User not logged in." },
+//         { status: 401 },
+//       );
+//     }
+//     const userId = session.user.id;
+//     const boardId = params.boardId;
 
-    // Validate user owns board
-    const userBoard = await getBoardById(boardId, boardRepository);
-    if (userBoard.userId !== userId) {
-      return NextResponse.json(
-        { error: "User for board not logged in." },
-        { status: 401 },
-      );
-    }
-  } catch (error: any) {
-    console.error(`Error getting shared users for board: ${error}`);
-    return NextResponse.json(
-      { error: "Something went wrong. Please try again later." },
-      { status: 500 },
-    );
-  }
-}
+//     // Validate user owns board
+//     const userBoard = await getBoardById(boardId, boardRepository);
+//     if (userBoard.userId !== userId) {
+//       return NextResponse.json(
+//         { error: "User for board not logged in." },
+//         { status: 401 },
+//       );
+//     }
+//   } catch (error: any) {
+//     console.error(`Error getting shared users for board: ${error}`);
+//     return NextResponse.json(
+//       { error: "Something went wrong. Please try again later." },
+//       { status: 500 },
+//     );
+//   }
+// }
 
 // PATCH Share board with user
 export async function PATCH(

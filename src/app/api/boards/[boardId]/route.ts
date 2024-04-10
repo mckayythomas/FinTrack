@@ -31,7 +31,11 @@ export async function GET(
       );
     }
 
-    if (board.userId !== session.user.id) {
+    if (
+      board.userId !== session.user.id &&
+      board.sharedUsers?.find((user) => user.userId !== session.user?.id)
+        ?.userId
+    ) {
       return NextResponse.json(
         { error: "User for board not logged in." },
         { status: 401 },
@@ -66,7 +70,11 @@ export async function PATCH(
 
     // Validate user owns board
     const userBoard = await getBoardById(boardId, boardRepository);
-    if (userBoard.userId !== session.user.id) {
+    if (
+      userBoard.userId !== session.user.id &&
+      userBoard.sharedUsers?.find((user) => user.userId != session.user?.id)
+        ?.userId
+    ) {
       return NextResponse.json(
         { error: "User for board not logged in." },
         { status: 401 },
@@ -134,7 +142,7 @@ export async function DELETE(
     await deleteBoard(boardId, boardRepository);
     return NextResponse.json(
       { message: "Board deleted successfully" },
-      { status: 204 },
+      { status: 200 },
     );
   } catch (error: any) {
     console.error(`Error deleting board: ${error}`);

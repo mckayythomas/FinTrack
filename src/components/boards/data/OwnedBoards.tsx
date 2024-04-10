@@ -40,6 +40,13 @@ export default function OwnedBoards() {
       </div>
     );
 
+  if (boardData.boards.length === 0)
+    return (
+      <div className="h-[215px] rounded border border-solid border-black p-5">
+        <p className="text-center font-bold">You have no boards yet</p>
+      </div>
+    );
+
   return (
     <section className="flex flex-wrap justify-center">
       {boardData.boards.map((board: IBoardEntity) => {
@@ -48,7 +55,7 @@ export default function OwnedBoards() {
             key={board._id}
             className="m-3 w-[250px] rounded-md border border-solid border-black"
           >
-            <Link href={`/viewBoards/${board._id}`}>
+            <Link href={`/board/${board._id}`}>
               <h3 className="text-center text-xl font-bold">{board.name}</h3>
               <ul className="mx-2">
                 <li className="h-[72px]">
@@ -75,6 +82,7 @@ export default function OwnedBoards() {
               </ul>
             </Link>
             <div className="m-1 flex justify-end border-t border-black pt-1">
+              <SharedUsers boardData={board} />
               <EditBoard boardData={board} />
               <DeleteBoard boardData={board} />
             </div>

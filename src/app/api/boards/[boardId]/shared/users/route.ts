@@ -4,7 +4,6 @@ import { UserRepository } from "@/infrastructure/adapters/repositories/UserRepos
 import { getUserById } from "@/domain/useCases/users/getUserById";
 import { auth } from "@/infrastructure/auth/nextAuth";
 import { getBoardById } from "@/domain/useCases/boards/data/GetBoardById";
-import { sharedUsersSchema } from "@/app/api/_validation/user.schema";
 import { IUserEntity } from "@/domain/entities/IUserEntity";
 
 interface ISharedUsers extends IUserEntity {
@@ -13,7 +12,7 @@ interface ISharedUsers extends IUserEntity {
 
 const boardRepository = new BoardRepository();
 const userRepository = new UserRepository();
-// GET shared users get user from ID
+// GET shared users from ID
 export async function GET(
   request: NextRequest,
   { params }: { params: { boardId: string } },
@@ -30,13 +29,6 @@ export async function GET(
 
     // Get board to validate userId's are part of shared board
     const board = await getBoardById(boardId, boardRepository);
-    const boardSharedUsers = board.sharedUsers;
-    if (!boardSharedUsers || boardSharedUsers.length === 0) {
-      return NextResponse.json(
-        { error: "Board has no shared users" },
-        { status: 400 },
-      );
-    }
 
     const sharedUsersIds = board.sharedUsers!.map((user) => user.userId);
     const users: ISharedUsers[] = await Promise.all(

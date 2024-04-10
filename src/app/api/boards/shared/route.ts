@@ -17,12 +17,7 @@ export async function GET(request: NextRequest) {
 
     const sharedUserId = session.user.id!;
     const boards = await getAllSharedBoards(sharedUserId, boardRepository);
-    if (boards.length === 0) {
-      return NextResponse.json(
-        { message: "No shared boards found for the user." },
-        { status: 404 },
-      );
-    }
+
     return NextResponse.json({ boards }, { status: 200 });
   } catch (error: any) {
     console.error(`Error sharing board: ${error}`);

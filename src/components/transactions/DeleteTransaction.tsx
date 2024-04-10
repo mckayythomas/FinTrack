@@ -1,37 +1,47 @@
 "use client";
 import { useState } from "react";
 import { mutate } from "swr";
-import { IBoardEntity } from "@/domain/entities/IBoardEntity";
-import { DataError, ComponentDataErrorProps } from "../../errors/DataError";
+import { ITransactionEntity } from "@/domain/entities/ITransactionEntity";
+import { ComponentDataErrorProps, DataError } from "../errors/DataError";
 
-interface IDeleteBoardProps {
-  boardData: IBoardEntity;
+interface IDeleteTransactionProps {
+  boardId: string;
+  monthId: string;
+  transactionData: ITransactionEntity;
 }
 
-export default function DeleteBoard({ boardData }: IDeleteBoardProps) {
+export default function DeleteTransactionButton({
+  boardId,
+  monthId,
+  transactionData,
+}: IDeleteTransactionProps) {
   const [deleteError, setDeleteError] =
     useState<ComponentDataErrorProps | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
   const handleDelete = async (e: any) => {
-    const response = await fetch(`/api/boards/${boardData._id}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      `/api/boards/${boardId}/transactions/${transactionData._id}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
       },
-    });
+    );
     if (response.ok) {
       mutate(
-        "/api/boards",
+        `/api/boards/${boardId}/months/${monthId}/transactions`,
         (currentData) => {
-          if (currentData && Array.isArray(currentData.boards)) {
-            const updatedBoards = currentData.boards.filter(
-              (board: IBoardEntity) => board._id !== boardData._id,
+          if (currentData && Array.isArray(currentData.transactions)) {
+            const updatedTransactions = currentData.transactions.filter(
+              (transaction: ITransactionEntity) =>
+                transaction._id !== transactionData._id,
             );
 
             return {
               ...currentData,
-              boards: updatedBoards,
+              transactions: updatedTransactions,
             };
           }
 
@@ -45,10 +55,10 @@ export default function DeleteBoard({ boardData }: IDeleteBoardProps) {
 
   return (
     <>
-      {boardData && (
+      {transactionData && (
         <button
           type="button"
-          title="Delete Board"
+          title="Delete Transaction"
           onClick={() => setIsOpen(!isOpen)}
         >
           <svg
@@ -72,7 +82,9 @@ export default function DeleteBoard({ boardData }: IDeleteBoardProps) {
             {deleteError ? (
               <>
                 <div className="mb-12 flex justify-between">
-                  <h3 className="text-xl font-bold underline">Delete Board:</h3>
+                  <h3 className="text-xl font-bold underline">
+                    Delete Transaction:
+                  </h3>
                   <button
                     onClick={() => {
                       setIsOpen(false);
@@ -103,7 +115,9 @@ export default function DeleteBoard({ boardData }: IDeleteBoardProps) {
             ) : (
               <>
                 <div className="flex justify-between">
-                  <h3 className="text-xl font-bold underline">Delete Board:</h3>
+                  <h3 className="text-xl font-bold underline">
+                    Delete Transaction:
+                  </h3>
                   <button
                     onClick={() => setIsOpen(false)}
                     className="text-red-500 hover:bg-red-500 hover:text-white"
@@ -125,13 +139,13 @@ export default function DeleteBoard({ boardData }: IDeleteBoardProps) {
                 <div className="flex h-full flex-col items-center justify-center">
                   <p className="mb-4 text-center">
                     Are you sure you want to delete{" "}
-                    <strong>{boardData.name}</strong> ?
+                    <strong>{transactionData.name}</strong> ?
                   </p>
                   <button
                     className="mt-3 rounded-md bg-red-500 px-3 py-2 font-bold text-white"
                     onClick={handleDelete}
                   >
-                    Delete Board
+                    Delete Transaction
                   </button>
                 </div>
               </>

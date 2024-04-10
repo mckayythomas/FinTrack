@@ -6,7 +6,7 @@ export default async function Header() {
   const session = await auth();
 
   return (
-    <header className="flex bg-slate-600 p-4">
+    <header className="flex bg-slate-600 p-4 text-white">
       <Image
         src={"/next.svg"}
         alt={"FinTrack Logo"}
@@ -14,26 +14,27 @@ export default async function Header() {
         height={50}
       ></Image>
       <h1 className="ml-4 flex-grow text-3xl">FinTrack</h1>
-      <nav className="mx-4">
+      <nav>
         {session?.user ? (
           <>
-            <Link className="mx-4" href="/home">
+            <Link className="mx-2" href="/home">
               Home
             </Link>
-            <Link className="mx-4" href="/boards">
+            <Link className="mx-2" href="/viewBoards">
               My Boards
             </Link>
-            <Link className="mx-4" href="account">
-              My Account
-            </Link>
-            <Link className="mx-4" href="/api/auth/signout">
-              <button className="rounded-md bg-white px-3 py-1">Logout</button>
+            <Link className="mx-2" href="/api/auth/signout">
+              <button className="rounded-md bg-white px-3 py-1 text-black">
+                Logout
+              </button>
             </Link>
           </>
         ) : (
           <>
-            <Link className="mx-4" href="/api/auth/signin">
-              <button className="rounded-md bg-white px-3 py-1">Login</button>
+            <Link className="mx-2" href="/api/auth/signin">
+              <button className="rounded-md bg-white px-3 py-1 text-black">
+                Login
+              </button>
             </Link>
           </>
         )}

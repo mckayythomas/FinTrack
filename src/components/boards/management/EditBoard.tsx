@@ -35,19 +35,19 @@ export default function EditBoard({ boardData }: IEditBoardProps) {
       const { board: updatedBoard } = await response.json();
       mutate(
         "/api/boards",
-        (cachedData) => {
-          if (!cachedData || !cachedData.boards) return cachedData;
-          const index = cachedData.boards.findIndex(
+        (currentData) => {
+          if (!currentData || !currentData.boards) return currentData;
+          const index = currentData.boards.findIndex(
             (board: IBoardEntity) => board._id === boardData._id,
           );
 
           if (index !== -1) {
-            const updatedBoards = [...cachedData.boards];
+            const updatedBoards = [...currentData.boards];
             updatedBoards[index] = updatedBoard;
 
-            return { ...cachedData, boards: updatedBoards };
+            return { ...currentData, boards: updatedBoards };
           }
-          return cachedData;
+          return currentData;
         },
         false,
       );

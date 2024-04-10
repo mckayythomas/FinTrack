@@ -5,30 +5,36 @@ import {
   ComponentDataErrorProps,
   DataError,
 } from "@/components/errors/DataError";
+import { ITransactionEntity } from "@/domain/entities/ITransactionEntity";
+import convertUNIXtoISODateForForm from "../utils/convertDateForForms";
 
 interface INewTransactionButtonProps {
   boardId: string;
+  transaction: ITransactionEntity;
 }
 
-export default function NewTransactionButton({
+export default function EditTransactionButton({
   boardId,
+  transaction,
 }: INewTransactionButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [createError, setCreateError] =
     useState<ComponentDataErrorProps | null>(null);
   const [formData, setFormData] = useState({
-    name: "",
-    type: "expense",
-    description: "",
-    amount: 0,
-    date: "",
-    location: "",
-    category: "",
+    _id: transaction._id,
+    name: transaction.name,
+    type: transaction.type,
+    description: transaction.description,
+    amount: transaction.amount,
+    date: convertUNIXtoISODateForForm(transaction.date as number),
+    location: transaction.location,
+    category: transaction.category,
   });
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     const createdTransactionData = {
+      _id: formData._id,
       name: formData.name,
       amount: formData.amount,
       type: formData.type,
@@ -36,13 +42,16 @@ export default function NewTransactionButton({
       location: formData.location,
       category: formData.category,
     };
-    const response = await fetch(`/api/boards/${boardId}/transactions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      `/api/boards/${boardId}/transactions/${transaction._id}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(createdTransactionData),
       },
-      body: JSON.stringify(createdTransactionData),
-    });
+    );
     if (response.ok) {
       const { board: createdBoard } = await response.json();
       window.location.reload();
@@ -59,10 +68,18 @@ export default function NewTransactionButton({
   return (
     <>
       <button
+        type="button"
+        title="Edit Transaction"
         onClick={() => setIsOpen(!isOpen)}
-        className="rounded-md bg-slate-600 px-3 py-1 font-bold text-white"
       >
-        + Add New Transaction
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="m-1 h-5 w-5"
+        >
+          <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32L19.513 8.2Z" />
+        </svg>
       </button>
       {isOpen && (
         <>
@@ -143,14 +160,12 @@ export default function NewTransactionButton({
                   />
                 </div>
                 <div className="flex justify-between">
-                  <label className="m-3 font-semibold" htmlFor="amount">
+                  <label className="m-3 font-semibold" htmlFor="description">
                     Transaction Amount:
                   </label>
                   <input
-                    className="m-3 ml-6 rounded-md border-2 border-solid border-black px-3 py-1"
+                    className="m-3 rounded-md border-2 border-solid border-black px-3 py-1"
                     type="number"
-                    min="0"
-                    step="0.01"
                     id="amount"
                     value={formData.amount}
                     onChange={(e) =>
@@ -164,7 +179,7 @@ export default function NewTransactionButton({
                   />
                 </div>
                 <div>
-                  <label className="m-3 font-semibold" htmlFor="date">
+                  <label className="m-3 font-semibold" htmlFor="description">
                     Transaction Date:
                   </label>
                   <input
@@ -180,7 +195,7 @@ export default function NewTransactionButton({
                   />
                 </div>
                 <div>
-                  <label className="m-3 font-semibold" htmlFor="location">
+                  <label className="m-3 font-semibold" htmlFor="description">
                     Transaction Location:
                   </label>
                   <input
@@ -196,18 +211,19 @@ export default function NewTransactionButton({
                   />
                 </div>
                 <div>
-                  <label className="m-3 font-semibold" htmlFor="category">
+                  <label className="m-3 font-semibold" htmlFor="description">
                     Transaction Category:
                   </label>
                   <select
                     className="m-3 w-[243.2px] rounded-md border-2 border-solid border-black px-3 py-1"
                     id="category"
                     onChange={(e) =>
+                      // @ts-ignore
                       setFormData({ ...formData, category: e.target.value })
                     }
                     required
                   >
-                    <option value="" disabled selected hidden>
+                    <option value="" disabled hidden>
                       Select Category
                     </option>
                     <option value="housing">Housing</option>
@@ -229,7 +245,7 @@ export default function NewTransactionButton({
                   type="submit"
                   className="my-4 ml-[37%] rounded-md bg-slate-600 px-3 py-2 font-bold text-white"
                 >
-                  Create Transaction
+                  Edit Transaction
                 </button>
               </>
             )}
