@@ -8,10 +8,13 @@ import { DataError } from "../../errors/DataError";
 import EditBoard from "../management/EditBoard";
 
 async function getSharedBoards() {
-  const boardsData = await fetch(`${process.env.API_HREF}/api/boards/shared`, {
-    method: "GET",
-    headers: { Cookie: cookies().toString() },
-  });
+  const boardsData = await fetch(
+    `https://fin-track-nine.vercel.app/api/boards/shared`,
+    {
+      method: "GET",
+      headers: { Cookie: cookies().toString() },
+    },
+  );
   return boardsData;
 }
 
