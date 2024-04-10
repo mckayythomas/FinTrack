@@ -17,7 +17,7 @@ export default async function Header() {
       <nav>
         {session?.user ? (
           <>
-            <Link className="mx-2" href="/home">
+            <Link className="mx-2" href="/">
               Home
             </Link>
             <Link className="mx-2" href="/viewBoards">
