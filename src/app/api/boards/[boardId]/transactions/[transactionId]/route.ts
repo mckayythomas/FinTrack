@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { TransactionRepository } from "@/infrastructure/adapters/repositories/TransactionRepository";
 import { MonthRepository } from "@/infrastructure/adapters/repositories/MonthRepository";
 import { YearRepository } from "@/infrastructure/adapters/repositories/YearRepository";
@@ -18,8 +17,8 @@ import { deleteYear } from "@/domain/useCases/years/management/DeleteYear";
 import { updateTransactionSchema } from "@/app/api/_validation/transaction.schema";
 import { IMonthEntity } from "@/domain/entities/IMonthEntity";
 import { getBoardById } from "@/domain/useCases/boards/data/GetBoardById";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { BoardRepository } from "@/infrastructure/adapters/repositories/BoardRepository";
+import { auth } from "@/infrastructure/auth/nextAuth";
 
 const transactionRepository = new TransactionRepository();
 const monthRepository = new MonthRepository();
@@ -29,14 +28,14 @@ const boardRepository = new BoardRepository();
 // GET retrieve individual transaction
 export async function GET(
   request: NextRequest,
-  { params }: { params: { boardId: string; transactionId: string } }
+  { params }: { params: { boardId: string; transactionId: string } },
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session || !session.user) {
       return NextResponse.json(
         { error: "User not logged in." },
-        { status: 401 }
+        { status: 401 },
       );
     }
     const userId = session.user.id;
@@ -44,21 +43,25 @@ export async function GET(
 
     // Validate user owns board
     const userBoard = await getBoardById(boardId, boardRepository);
-    if (userBoard.userId !== userId) {
+    if (
+      userBoard.userId !== session.user.id &&
+      userBoard.sharedUsers?.find((user) => user.userId !== session.user?.id)
+        ?.userId
+    ) {
       return NextResponse.json(
         { error: "User for board not logged in." },
-        { status: 401 }
+        { status: 401 },
       );
     }
     const transactionId = params.transactionId;
     const transaction = await getTransactionById(
       transactionId,
-      transactionRepository
+      transactionRepository,
     );
     if (!transaction) {
       return NextResponse.json(
         { error: `No transaction found for transactionId: ${transactionId}` },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -67,7 +70,7 @@ export async function GET(
     console.error(`Error getting transaction: ${error}`);
     return NextResponse.json(
       { message: "Something went wrong. Please try again later." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -75,7 +78,7 @@ export async function GET(
 // PATCH update transaction
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { boardId: string; transactionId: string } }
+  { params }: { params: { boardId: string; transactionId: string } },
 ) {
   try {
     // Authenticate user
@@ -96,24 +99,24 @@ export async function PATCH(
           message: "Invalid request data",
           errors: errorMessages,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const oldTransaction = await getTransactionById(
       transactionId,
-      transactionRepository
+      transactionRepository,
     );
 
     const updateTransactionDate = new Date(updateTransactionData.data.date);
     const updateTransactionDateUnix = Math.floor(
-      updateTransactionDate.getTime() / 1000
+      updateTransactionDate.getTime() / 1000,
     );
 
     // Init month to be able to change later
     let month: IMonthEntity | undefined = await getMonthById(
       oldTransaction.monthId,
-      monthRepository
+      monthRepository,
     );
 
     // Create year for and year as needed
@@ -166,7 +169,7 @@ export async function PATCH(
     const transaction = await updateTransaction(
       transactionId,
       updatedTransactionData,
-      transactionRepository
+      transactionRepository,
     );
 
     // Check if date is changed
@@ -178,7 +181,7 @@ export async function PATCH(
 
       const transactionsForMonth = await getTransactionsByMonth(
         oldMonthId,
-        transactionRepository
+        transactionRepository,
       );
       if (transactionsForMonth.length === 0) {
         await deleteMonth(oldMonthId, monthRepository);
@@ -196,7 +199,7 @@ export async function PATCH(
       month.yearId,
       transactionRepository,
       monthRepository,
-      yearRepository
+      yearRepository,
     );
 
     return NextResponse.json({ transaction }, { status: 200 });
@@ -204,7 +207,7 @@ export async function PATCH(
     console.error(`Error updating transaction: ${error}`);
     return NextResponse.json(
       { message: "Something went wrong. Please try again later." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -212,7 +215,7 @@ export async function PATCH(
 // DELETE delete a transaction
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { boardId: string; transactionId: string } }
+  { params }: { params: { boardId: string; transactionId: string } },
 ) {
   try {
     // Authenticate user
@@ -221,12 +224,12 @@ export async function DELETE(
     // Retrieve transaction
     const transaction = await getTransactionById(
       transactionId,
-      transactionRepository
+      transactionRepository,
     );
     if (!transaction) {
       return NextResponse.json(
         { message: `Transaction with Id: ${transactionId} not found.` },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -241,7 +244,7 @@ export async function DELETE(
     // check if any transactions exist for month
     const transactionsForMonth = await getTransactionsByMonth(
       monthId,
-      transactionRepository
+      transactionRepository,
     );
     if (transactionsForMonth.length === 0) {
       await deleteMonth(monthId, monthRepository);
@@ -258,7 +261,7 @@ export async function DELETE(
       yearId,
       transactionRepository,
       monthRepository,
-      yearRepository
+      yearRepository,
     );
 
     return NextResponse.json({ status: 204 });
@@ -266,7 +269,7 @@ export async function DELETE(
     console.error(`Error deleting transaction: ${error}`);
     return NextResponse.json(
       { message: "Something went wrong. Please try again later." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { YearRepository } from "@/infrastructure/adapters/repositories/YearRepository";
 import { MonthRepository } from "@/infrastructure/adapters/repositories/MonthRepository";
 import { TransactionRepository } from "@/infrastructure/adapters/repositories/TransactionRepository";
@@ -11,8 +10,8 @@ import { createTransaction } from "@/domain/useCases/transactions/creation/Creat
 import { aggregateTransactions } from "@/domain/useCases/transactions/data/AggregateTransactions";
 import { createTransactionSchema } from "@/app/api/_validation/transaction.schema";
 import { getBoardById } from "@/domain/useCases/boards/data/GetBoardById";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { BoardRepository } from "@/infrastructure/adapters/repositories/BoardRepository";
+import { auth } from "@/infrastructure/auth/nextAuth";
 
 const transactionRepository = new TransactionRepository();
 const boardRepository = new BoardRepository();
@@ -22,14 +21,14 @@ const monthRepository = new MonthRepository();
 // POST create new transaction
 export async function POST(
   request: NextRequest,
-  { params }: { params: { boardId: string } }
+  { params }: { params: { boardId: string } },
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session || !session.user) {
       return NextResponse.json(
         { error: "User not logged in." },
-        { status: 401 }
+        { status: 401 },
       );
     }
     const userId = session.user.id;
@@ -37,10 +36,14 @@ export async function POST(
 
     // Validate user owns board
     const userBoard = await getBoardById(boardId, boardRepository);
-    if (userBoard.userId !== userId) {
+    if (
+      userBoard.userId !== session.user.id &&
+      userBoard.sharedUsers?.find((user) => user.userId !== session.user?.id)
+        ?.userId
+    ) {
       return NextResponse.json(
         { error: "User for board not logged in." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -58,11 +61,11 @@ export async function POST(
           message: "Invalid request data",
           errors: errorMessages,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    // Check if year exists and create.
+    // Check if year exists and create year and all months.
     const transactionDate = new Date(transactionData.data.date);
     const transactionYear = transactionDate.getUTCFullYear();
     const transactionMonth = transactionDate.getUTCMonth() + 1;
@@ -77,9 +80,18 @@ export async function POST(
       if (!year) {
         throw new Error();
       }
+      const yearId = year._id!;
+      for (let i = 1; i <= 12; i++) {
+        const newMonthData = {
+          yearId: yearId,
+          month: i,
+        };
+        let month = await createMonth(newMonthData, monthRepository);
+        if (!month) {
+          console.error(`Error Creating month ${i}`);
+        }
+      }
     }
-
-    // check if month exists and create month as needed
     const yearId = year._id!;
     const months = await getMonthsByYear(yearId, monthRepository);
     let month = months.find((month) => month.month === transactionMonth);
@@ -90,6 +102,7 @@ export async function POST(
       };
       month = await createMonth(newMonthData, monthRepository);
       if (!month) {
+        console.error();
         throw new Error();
       }
     }
@@ -113,7 +126,7 @@ export async function POST(
 
     const transaction = await createTransaction(
       newTransactionData,
-      transactionRepository
+      transactionRepository,
     );
 
     // Aggregate transactions
@@ -122,7 +135,7 @@ export async function POST(
       yearId,
       transactionRepository,
       monthRepository,
-      yearRepository
+      yearRepository,
     );
 
     return NextResponse.json({ transaction }, { status: 201 });
@@ -130,7 +143,7 @@ export async function POST(
     console.error(`Error creating transaction: \n${error.message}`);
     return NextResponse.json(
       { error: "Something went wrong. Please try again later." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
