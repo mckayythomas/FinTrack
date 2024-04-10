@@ -10,14 +10,17 @@ export default async function Year({
   const boardId = params.boardId;
   const yearId = params.yearId;
 
-  const boardData = await fetch(`http://localhost:3000/api/boards/${boardId}`, {
-    method: "GET",
-    headers: { Cookie: cookies().toString() },
-  });
+  const boardData = await fetch(
+    `https://fin-track-nine.vercel.app/api/boards/${boardId}`,
+    {
+      method: "GET",
+      headers: { Cookie: cookies().toString() },
+    },
+  );
   const board = await boardData.json();
 
   const monthsData = await fetch(
-    `http://localhost:3000/api/boards/${boardId}/years/${yearId}/months`,
+    `https://fin-track-nine.vercel.app/api/boards/${boardId}/years/${yearId}/months`,
     {
       method: "GET",
       headers: { Cookie: cookies().toString() },

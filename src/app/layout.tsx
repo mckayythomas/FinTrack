@@ -22,7 +22,7 @@ export default async function RootLayout({
         className={`flex min-h-screen flex-col justify-between ${inter.className}`}
       >
         <Header />
-        <main className="mx-[5%] md:mx-[13%]">{children}</main>
+        <main className="mx-[5%] flex-grow md:mx-[13%]">{children}</main>
         <Footer />
       </body>
     </html>
